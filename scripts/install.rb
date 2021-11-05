@@ -32,12 +32,12 @@ def get_pkgs
 
     pkg_shell = ShellDoer.new("~")
     pkg_shell.>(%q{
-        sudo apt-get install gawk liblua5.1-0-dev libntl-dev         \
+        apt-get install gawk liblua5.1-0-dev libntl-dev         \
                 libmysqlclient-dev libssl-dev libbsd-dev        \
                 libevent-dev libglib2.0-dev libgmp-dev          \
                 mysql-server libaio-dev automake                \
                 gtk-doc-tools flex cmake libncurses5-dev        \
-                bison g++ make
+                g++ make
     })
 end
 
@@ -154,7 +154,7 @@ def fn(cdb_path, in_make_v=nil, in_gcc_v=nil)
     cryptdb_shell.>("mkdir #{shadow_path}")
 
     # Give the user access to all the stuff we created.
-    cryptdb_shell.>("chown -R #{Etc.getlogin} #{cryptdb_path}")
+    # cryptdb_shell.>("chown -R #{Etc.getlogin} #{cryptdb_path}")
 
     # remind the user about EDBDIR
     p_puts "You must do: export EDBDIR=/full/path/to/cryptdb/ before running cryptdb; we recommend putting it into your .bashrc"
