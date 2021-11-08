@@ -1,2 +1,1 @@
-set softtabstop=4
-set expandtab
+../../conf/dot.vimrc
