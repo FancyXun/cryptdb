@@ -56,9 +56,10 @@ def searchable_encryption(raw_data_file_name, master_key, keyword_type_list):
 
 if __name__ == "__main__":
 
-    document_name = "sample_conjunction.csv"
+    document_name = "sample_single.csv"
     master_key = "hdakudynzjdylopt"
-    keyword_type_list = ["a3"]
+    keyword_type_list = ["Year","Month","Utility_Number","Name","State",
+    "AMI_Res","AMI_Com","AMI_Ind","AMI_Tran","AMI_Total"]
 
     searchable_encryption(document_name, master_key, keyword_type_list)
     print ("Finished")
