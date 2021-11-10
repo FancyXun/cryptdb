@@ -129,6 +129,8 @@ query_parse::query_parse(const std::string &db, const std::string &q)
         if (ps.init(t, buf, len))
             throw CryptDBError("Parser_state::init");
 
+        // Transform an SQL statement into an AST that is ready for resolving, 
+        // using the supplied parser state and object creation context.
         if (parse_sql(t, &ps, 0))
             throw CryptDBError("parse_sql");
 
