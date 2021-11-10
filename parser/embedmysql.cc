@@ -121,7 +121,9 @@ query_parse::query_parse(const std::string &db, const std::string &q)
         memcpy(buf, q.c_str(), q.size());
         buf[q.size()] = '\0';
         size_t len = q.size();
-
+        
+        // bool alloc_query (THD *thd, const char *packet, size_t packet_length)
+        // Read query from packet and store in thd->query 
         alloc_query(t, buf, len + 1);
 
         if (ps.init(t, buf, len))
