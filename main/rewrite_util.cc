@@ -634,7 +634,7 @@ determineSecurityRating()
         return SECURITY_RATING::BEST_EFFORT;
     }
     
-    return SECURITY_RATING::SENSITIVE;
+    return SECURITY_RATING::BEST_EFFORT;
 }
 
 bool
