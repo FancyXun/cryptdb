@@ -24,7 +24,7 @@ CXXFLAGS += -I$(MYBUILD)/include \
 	    -I$(MYSRC)/sql \
 	    -I$(MYSRC)/regex \
 	    -I$(MYBUILD)/sql \
-	    -DHAVE_CONFIG_H -DMYSQL_SERVER -DEMBEDDED_LIBRARY -DDBUG_OFF \
+	    -DHAVE_CONFIG_H -DMYSQL_SERVER -DEMBEDDED_LIBRARY -DDBUG_ON \
 	    -DMYSQL_BUILD_DIR=\"$(MYBUILD)\"
 LDFLAGS	 += -lpthread -lrt -ldl -lcrypt -lreadline
 
