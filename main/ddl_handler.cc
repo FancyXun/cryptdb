@@ -20,8 +20,8 @@ class CreateTableHandler : public DDLHandler {
         TEST_DatabaseDiscrepancy(pre.dbname, a.getDatabaseName());
         LEX *const new_lex = copyWithTHD(lex);
 
-        TEST_Text(DB_TYPE_INNODB == lex->create_info.db_type->db_type,
-                  "InnoDB is the only supported ENGINE")
+        //TEST_Text(DB_TYPE_INNODB == lex->create_info.db_type->db_type,
+        //          "InnoDB is the only supported ENGINE")
 
         // partitioning information is not currently printed by our LEX
         // stringifications algorithms which leads to a truncated query
