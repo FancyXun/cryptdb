@@ -18,5 +18,5 @@ create database test;
 use test;
 create table t(sno varchar(20));
 insert into t(sno) values("1111");
-select * from t1 where sno like "%";
+select * from t where sno like "%";
 ```
