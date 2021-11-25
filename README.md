@@ -20,3 +20,8 @@ create table t(sno varchar(20));
 insert into t(sno) values("1111");
 select * from t where sno like "%";
 ```
+
+```shell script
+>> b main/rewrite_util.cc:42
+>> b main/rewrite_main.hh:199
+```
