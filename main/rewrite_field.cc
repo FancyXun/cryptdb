@@ -111,7 +111,13 @@ class ANON : public CItemSubtypeIT<Item_field, Item::Type::FIELD_ITEM> {
                 a.getTableMeta(db_name, plain_table_name);
             throw OnionAdjustExcept(tm, fm, constr.o, constr.l);
         }
-
+        else if (onion_level == SECLEVEL::PLAINVAL)
+        {
+            const TableMeta &tm =
+                a.getTableMeta(db_name, plain_table_name);
+            throw OnionAdjustExcept(tm, fm, constr.o, SECLEVEL::DET);
+        }
+        
         bool is_alias;
         const std::string anon_table_name =
             a.getAnonTableName(db_name, plain_table_name, &is_alias);

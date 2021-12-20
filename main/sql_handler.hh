@@ -77,6 +77,8 @@ public:
     virtual bool stales() const {return false;}
     virtual bool usesEmbedded() const {return false;}
 
+    bool last_query = false;
+
 private:
     void genericPreamble(const NextParams &nparams);
 };

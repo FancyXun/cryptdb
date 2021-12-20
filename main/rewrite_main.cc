@@ -827,8 +827,55 @@ removeOnionLayer(const Analysis &a, const TableMeta &tm,
     EncLayer const &back_el = om_adjustor->popBackEncLayer();
 
     // Update the Meta.
+    // 参考create table的代码
     deltas->push_back(std::unique_ptr<Delta>(
                         new DeleteDelta(back_el,
+                                        om_adjustor->getOnionMeta())));
+    const SECLEVEL local_new_level = om_adjustor->getSecLevel();
+
+    //removes onion layer at the DB
+    const std::string dbname = a.getDatabaseName();
+    const std::string anon_table_name = tm.getAnonTableName();
+    Item_field *const salt =
+        new Item_field(NULL, dbname.c_str(), anon_table_name.c_str(),
+                       fm.getSaltName().c_str());
+
+    const std::string fieldanon = om_adjustor->getAnonOnionName();
+    Item_field *const field =
+        new Item_field(NULL, dbname.c_str(), anon_table_name.c_str(),
+                       fieldanon.c_str());
+
+    Item *const decUDF = back_el.decryptUDF(field, salt);
+
+    std::stringstream query;
+    query << " UPDATE " << quoteText(dbname) << "." << anon_table_name
+          << "    SET " << fieldanon  << " = " << *decUDF
+          << ";";
+
+    std::cerr << GREEN_BEGIN << "\nADJUST: \n" << COLOR_END << terminalEscape(query.str()) << std::endl;
+
+    //execute decryption query
+
+    LOG(cdb_v) << "adjust onions: \n" << query.str() << std::endl;
+
+    *new_level = local_new_level;
+    return query.str();
+}
+
+static std::string
+addOnionLayer(const Analysis &a, const TableMeta &tm,
+              const FieldMeta &fm,
+              OnionMetaAdjustor *const om_adjustor,
+              SECLEVEL *const new_level,
+              std::vector<std::unique_ptr<Delta> > *const deltas)
+{
+    // Remove the EncLayer.
+    EncLayer const &back_el = om_adjustor->popBackEncLayer();
+
+    // Update the Meta.
+    // 参考create table的代码
+    deltas->push_back(std::unique_ptr<Delta>(
+                        new AddDelta(back_el,
                                         om_adjustor->getOnionMeta())));
     const SECLEVEL local_new_level = om_adjustor->getSecLevel();
 
@@ -881,6 +928,7 @@ adjustOnion(const Analysis &a, onion o, const TableMeta &tm,
     std::cout << GREEN_BEGIN << "onion: " << TypeText<onion>::toText(o) << COLOR_END << std::endl;
     // Make a copy of the onion meta for the purpose of making
     // modifications during removeOnionLayer(...)
+
     OnionMetaAdjustor om_adjustor(*fm.getOnionMeta(o));
     SECLEVEL newlevel = om_adjustor.getSecLevel();
     assert(newlevel != SECLEVEL::INVALID);
@@ -891,6 +939,14 @@ adjustOnion(const Analysis &a, onion o, const TableMeta &tm,
         auto query =
             removeOnionLayer(a, tm, fm, &om_adjustor, &newlevel,
                              &deltas);
+        adjust_queries.push_back(query);
+    }
+
+    OnionMeta &om = a.getOnionMeta(fm, o)
+    while (newlevel < tolevel) {
+        auto query =
+            addOnionLayer(a, tm, fm, &om_adjustor, &newlevel, 
+                          &deltas);
         adjust_queries.push_back(query);
     }
     TEST_UnexpectedSecurityLevel(o, tolevel, newlevel);
@@ -1696,7 +1752,9 @@ nextImpl(const ResType &res, const NextParams &nparams)
 
         this->reissue_nparams =
             NextParams(nparams.ps, nparams.default_db, nparams.original_query);
-        while (true) {
+        
+        std::cout << this->reissue_query_rewrite->executor->last_query << std::endl;
+        while (this->reissue_query_rewrite->executor->last_query == false) {
             yield {
                 auto result =
                     this->reissue_query_rewrite->executor->next(
@@ -1706,6 +1764,26 @@ nextImpl(const ResType &res, const NextParams &nparams)
                 this->first_reissue = false;
                 return result;
             }
+            
+        }
+
+        yield return CR_QUERY_RESULTS("COMMIT;COMMIT;COMMIT");
+        // if the client was in the middle of a transaction we must alert
+        // him that we had to rollback his queries
+        if (true == this->in_trx.get()) {
+            ROLLBACK_ERROR_PACKET
+        }
+
+        try {
+            this->reissue_query_rewrite = new QueryRewrite(
+                Rewriter::rewrite(
+                    nparams.original_query, *nparams.ps.getSchemaInfo().get(),
+                    nparams.default_db, nparams.ps));
+        } catch (const AbstractException &e) {
+            FAIL_GenericPacketException(e.to_string());
+        } catch (...) {
+            FAIL_GenericPacketException(
+                "unknown error occured while rewriting_back onion adjusment query");
         }
     }
 

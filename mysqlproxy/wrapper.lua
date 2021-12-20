@@ -107,6 +107,14 @@ function makePrintable(s)
 
 end
 
+function isLikeQuery(q)
+    if string.find(string.lower(q), "like") then
+        return true
+    else
+        return false
+    end
+end
+
 function prettyNewQuery(q)
     if DEMO then
         if string.find(q, "remote_db") then
@@ -148,7 +156,7 @@ function read_query_real(packet)
             return proxy.PROXY_SEND_RESULT
         end
 
-        return next_handler("query", true, client, {}, {}, nil, nil)
+        return next_handler("query", true, client, {}, {}, nil, nil, false)
     elseif string.byte(packet) == proxy.COM_QUIT then
         -- do nothing
     else
@@ -158,6 +166,7 @@ end
 
 function read_query_result_real(inj)
     local query = inj.query:sub(2)
+    local islike = isLikeQuery(query) --tby: improve this judgement in the future
     prettyNewQuery(query)
 
     if skip == true then
@@ -169,7 +178,7 @@ function read_query_result_real(inj)
     local resultset = inj.resultset
 
     if resultset.query_status == proxy.MYSQLD_PACKET_ERR then
-        return next_handler("results", false, client, {}, {}, 0, 0)
+        return next_handler("results", false, client, {}, {}, 0, 0, islike)
     end
 
     local client = proxy.connection.client.src.name
@@ -214,7 +223,7 @@ function read_query_result_real(inj)
     end
 
     return next_handler("results", true, client, interim_fields, interim_rows,
-                        resultset.affected_rows, resultset.insert_id)
+                        resultset.affected_rows, resultset.insert_id, islike)
 end
 
 local q_index = 0
@@ -228,14 +237,14 @@ function handle_from(from)
     if "query" == from then
         return proxy.PROXY_SEND_QUERY
     elseif "results" == from then
-        return proxy.PROXY_IGNORE_RESULT
+	return proxy.PROXY_IGNORE_RESULT
     end
 
     assert(nil)
 end
 
 function next_handler(from, status, client, fields, rows, affected_rows,
-                      insert_id)
+                      insert_id, islike)
     local control, param0, param1, param2, param3 =
         CryptDB.next(client, fields, rows, affected_rows, insert_id, status)
     if "again" == control then
@@ -244,7 +253,7 @@ function next_handler(from, status, client, fields, rows, affected_rows,
 
         proxy.queries:append(get_index(), string.char(proxy.COM_QUERY) .. query,
                              { resultset_is_needed = true } )
-        return handle_from(from)
+	return handle_from(from)
     elseif "query-results" == control then
         local query = param0
 
@@ -265,8 +274,16 @@ function next_handler(from, status, client, fields, rows, affected_rows,
         proxy.response.type             = proxy.MYSQLD_PACKET_OK
         proxy.response.affected_rows    = raffected_rows
         proxy.response.insert_id        = rinsert_id
-
+        
+        if islike then
+            proxy.queries:append(get_index(), string.char(proxy.COM_QUERY) .. "COMMIT", 
+                                {resultset_is_needed = true})
+	        --skip = true
+	        --print(packet_original)
+	        --print(string.sub(packet_original, 2))
+        end
         return proxy.PROXY_SEND_RESULT
+
     elseif "error" == control then
         proxy.response.type     = proxy.MYSQLD_PACKET_ERR
         proxy.response.errmsg   = param0

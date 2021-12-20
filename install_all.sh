@@ -1,3 +1,4 @@
+test haha
 rm .vimrc
 ln -s conf/dot.vimrc .vimrc
 
