@@ -24,6 +24,7 @@
 #include <main/ddl_handler.hh>
 #include <main/metadata_tables.hh>
 #include <main/macro_util.hh>
+#include <main/schema.hh>
 
 #include "field.h"
 #include <errmsg.h>
@@ -825,7 +826,6 @@ removeOnionLayer(const Analysis &a, const TableMeta &tm,
 {
     // Remove the EncLayer.
     EncLayer const &back_el = om_adjustor->popBackEncLayer();
-
     // Update the Meta.
     // 参考create table的代码
     deltas->push_back(std::unique_ptr<Delta>(
@@ -942,7 +942,6 @@ adjustOnion(const Analysis &a, onion o, const TableMeta &tm,
         adjust_queries.push_back(query);
     }
 
-    OnionMeta &om = a.getOnionMeta(fm, o)
     while (newlevel < tolevel) {
         auto query =
             addOnionLayer(a, tm, fm, &om_adjustor, &newlevel, 
@@ -1460,9 +1459,19 @@ Rewriter::dispatchOnLex(Analysis &a, const std::string &query)
             executor = handler.transformLex(a, lex);
         } catch (OnionAdjustExcept e) {
             LOG(cdb_v) << "caught onion adjustment";
+            
+            FieldMeta fm_original = e.fm;
+            OnionMeta om_original = a.getOnionMeta(e.fm, e.o)
             std::cout << GREEN_BEGIN << "Adjusting onion!" << COLOR_END
                       << std::endl;
-
+            if ( e.o != onion::oPLAIN)
+            {
+                std::pair<std::vector<std::unique_ptr<Delta> >,
+                std::list<std::string> >
+                out_data = adjustOnion(a, e.o, e.tm, e.fm, e.tolevel);
+                std::vector<std::unique_ptr<Delta> > &deltas = out_data.first;
+                const std::list<std::string> &adjust_queries = out_data.second;
+            }
             std::pair<std::vector<std::unique_ptr<Delta> >,
                       std::list<std::string> >
                 out_data = adjustOnion(a, e.o, e.tm, e.fm, e.tolevel);

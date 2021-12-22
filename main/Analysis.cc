@@ -640,6 +640,30 @@ bool DeleteDelta::apply(const std::unique_ptr<Connect> &e_conn,
     return helper(meta, parent_meta);
 }
 
+bool InsertDelta::apply(const std::unique_ptr<Connect> &e_conn,
+                         TableType table_type)
+{
+    const std::string table_name = tableNameFromType(table_type);
+    const unsigned int parent_id = parent_meta.getDatabaseID();
+    const unsigned int child_id = meta.getDatabaseID();
+
+    const std::string child_serial = meta.serialize(parent_meta);
+    const std::string esc_child_serial =
+        escapeString(e_conn, child_serial);
+    const std::string serial_key = key.getSerial();
+    const std::string esc_serial_key = escapeString(e_conn, serial_key);
+
+    const std::string &query =
+        " INSERT INTO " + table_name + 
+        "    (serial_object, serial_key, parent_id, id) VALUES (" 
+        " '" + esc_child_serial + "',"
+        " '" + esc_serial_key + "',"
+        " " + std::to_string(parent_id) + ","
+        " " + std::to_string(child_id) + ");";
+    RETURN_FALSE_IF_FALSE(e_conn->execute(query));
+    return true;
+}
+
 bool
 writeDeltas(const std::unique_ptr<Connect> &e_conn,
             const std::vector<std::unique_ptr<Delta> > &deltas,

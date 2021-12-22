@@ -54,8 +54,7 @@ static onionlayout BEST_EFFORT_NUM_ONION_LAYOUT = {
     {oAGG, std::vector<SECLEVEL>({SECLEVEL::HOM})},
     // Requires SECLEVEL::DET, otherwise you will have to implement
     // encoding for negative numbers in SECLEVEL::RND.
-    {oPLAIN, std::vector<SECLEVEL>({SECLEVEL::PLAINVAL, SECLEVEL::DET,
-                                    SECLEVEL::RND})}
+    {oPLAIN, std::vector<SECLEVEL>({SECLEVEL::PLAINVAL, SECLEVEL::DET})}
 };
 
 static onionlayout STR_ONION_LAYOUT = {
@@ -76,8 +75,7 @@ static onionlayout BEST_EFFORT_STR_ONION_LAYOUT = {
     //                              SECLEVEL::RND})},
     // HACK: RND_str expects the data to be a multiple of 16, so we use
     // DET (it supports decryption UDF) to handle the padding for us.
-    {oPLAIN, std::vector<SECLEVEL>({SECLEVEL::PLAINVAL, SECLEVEL::DET,
-                                    SECLEVEL::RND})}
+    {oPLAIN, std::vector<SECLEVEL>({SECLEVEL::PLAINVAL, SECLEVEL::DET})}
 };
 
 typedef std::map<onion, SECLEVEL>  OnionLevelMap;

@@ -173,7 +173,7 @@ private:
 };
 
 class DerivedKeyDelta : public Delta {
-public:
+public: 
     DerivedKeyDelta(const DBMeta &meta,
                     const DBMeta &parent_meta)
         : Delta(parent_meta), meta(meta),
@@ -197,6 +197,15 @@ public:
 class DeleteDelta : public DerivedKeyDelta {
 public:
     DeleteDelta(const DBMeta &meta, const DBMeta &parent_meta)
+        : DerivedKeyDelta(meta, parent_meta) {}
+
+    bool apply(const std::unique_ptr<Connect> &e_conn,
+               TableType table_type);
+};
+
+class InsertDelta : public DerivedKeyDelta {
+public:
+    InsertDelta(const DBMeta &meta, const DBMeta &parent_meta)
         : DerivedKeyDelta(meta, parent_meta) {}
 
     bool apply(const std::unique_ptr<Connect> &e_conn,
