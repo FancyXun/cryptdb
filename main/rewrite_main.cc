@@ -871,8 +871,9 @@ addOnionLayer_back(const Analysis &a, const TableMeta &tm,
               const std::vector<std::unique_ptr<Delta> > * original_deltas)
 {
     // Remove the EncLayer.
-
-    std::unique_ptr<Delta> a1 = original_deltas->back();
+    std::vector<std::unique_ptr<Delta> > * nonconst_deltas = 
+        const_cast<std::vector<std::unique_ptr<Delta> > * > (original_deltas);
+    std::unique_ptr<Delta> a1 = std::move(nonconst_deltas->back());
     DeleteDelta* p1 = nullptr;
     p1 = reinterpret_cast<DeleteDelta*>(a1.get());
     std::cout<<p1<<std::endl;
