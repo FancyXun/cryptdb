@@ -863,22 +863,27 @@ removeOnionLayer(const Analysis &a, const TableMeta &tm,
 }
 
 static std::string
-addOnionLayer(const Analysis &a, const TableMeta &tm,
+addOnionLayer_back(const Analysis &a, const TableMeta &tm,
               const FieldMeta &fm,
               OnionMetaAdjustor *const om_adjustor,
               SECLEVEL *const new_level,
-              std::vector<std::unique_ptr<Delta> > *const deltas)
+              std::vector<std::unique_ptr<Delta> > *const deltas,
+              const std::vector<std::unique_ptr<Delta> > * original_deltas)
 {
     // Remove the EncLayer.
-    EncLayer const &back_el = om_adjustor->popBackEncLayer();
 
+    std::unique_ptr<Delta> a1 = original_deltas->back();
+    DeleteDelta* p1 = nullptr;
+    p1 = reinterpret_cast<DeleteDelta*>(a1.get());
+    std::cout<<p1<<std::endl;
+
+    // EncLayer back_el = reinterpret_cast<EncLayer>(p1->meta);
     // Update the Meta.
-    // 参考create table的代码
     deltas->push_back(std::unique_ptr<Delta>(
-                        new AddDelta(back_el,
-                                        om_adjustor->getOnionMeta())));
-    const SECLEVEL local_new_level = om_adjustor->getSecLevel();
-
+                        new InsertDelta(p1->meta,
+                                        p1->parent_meta)));
+    const SECLEVEL local_new_level = SECLEVEL::DET;
+    /*
     //removes onion layer at the DB
     const std::string dbname = a.getDatabaseName();
     const std::string anon_table_name = tm.getAnonTableName();
@@ -903,7 +908,9 @@ addOnionLayer(const Analysis &a, const TableMeta &tm,
     //execute decryption query
 
     LOG(cdb_v) << "adjust onions: \n" << query.str() << std::endl;
-
+    */
+    std::stringstream query;
+    query << " TEST;";
     *new_level = local_new_level;
     return query.str();
 }
@@ -941,11 +948,50 @@ adjustOnion(const Analysis &a, onion o, const TableMeta &tm,
                              &deltas);
         adjust_queries.push_back(query);
     }
-
+    /*
     while (newlevel < tolevel) {
         auto query =
             addOnionLayer(a, tm, fm, &om_adjustor, &newlevel, 
                           &deltas);
+        adjust_queries.push_back(query);
+    }
+    */
+    TEST_UnexpectedSecurityLevel(o, tolevel, newlevel);
+
+    return make_pair(std::move(deltas), adjust_queries);
+    // return make_pair(deltas, adjust_queries);
+}
+
+static std::pair<std::vector<std::unique_ptr<Delta> >,
+                 std::list<std::string>>
+adjustOnion_back(const Analysis &a, onion o, const TableMeta &tm,
+                 const FieldMeta &fm, SECLEVEL tolevel,
+                 const std::vector<std::unique_ptr<Delta>> &original_deltas)
+{
+    TEST_Text(tolevel >= a.getOnionMeta(fm, o).getMinimumSecLevel(),
+              "your query requires to permissive of a security level");
+
+    std::cout << GREEN_BEGIN << "onion: " << TypeText<onion>::toText(o) << COLOR_END << std::endl;
+    // Make a copy of the onion meta for the purpose of making
+    // modifications during removeOnionLayer(...)
+
+    OnionMetaAdjustor om_adjustor(*fm.getOnionMeta(o));
+    SECLEVEL newlevel = om_adjustor.getSecLevel();
+    assert(newlevel != SECLEVEL::INVALID);
+
+    std::list<std::string> adjust_queries;
+    std::vector<std::unique_ptr<Delta> > deltas;
+    while (newlevel > tolevel) {
+        auto query =
+            removeOnionLayer(a, tm, fm, &om_adjustor, &newlevel,
+                             &deltas);
+        adjust_queries.push_back(query);
+    }
+
+    while (newlevel < tolevel) {
+        auto query =
+            addOnionLayer_back(a, tm, fm, &om_adjustor, &newlevel, 
+                               &deltas, &original_deltas);
         adjust_queries.push_back(query);
     }
     TEST_UnexpectedSecurityLevel(o, tolevel, newlevel);
@@ -1459,25 +1505,77 @@ Rewriter::dispatchOnLex(Analysis &a, const std::string &query)
             executor = handler.transformLex(a, lex);
         } catch (OnionAdjustExcept e) {
             LOG(cdb_v) << "caught onion adjustment";
-            
-            FieldMeta fm_original = e.fm;
-            OnionMeta om_original = a.getOnionMeta(e.fm, e.o)
             std::cout << GREEN_BEGIN << "Adjusting onion!" << COLOR_END
                       << std::endl;
-            if ( e.o != onion::oPLAIN)
-            {
-                std::pair<std::vector<std::unique_ptr<Delta> >,
-                std::list<std::string> >
-                out_data = adjustOnion(a, e.o, e.tm, e.fm, e.tolevel);
-                std::vector<std::unique_ptr<Delta> > &deltas = out_data.first;
-                const std::list<std::string> &adjust_queries = out_data.second;
-            }
             std::pair<std::vector<std::unique_ptr<Delta> >,
                       std::list<std::string> >
                 out_data = adjustOnion(a, e.o, e.tm, e.fm, e.tolevel);
             std::vector<std::unique_ptr<Delta> > &deltas = out_data.first;
             const std::list<std::string> &adjust_queries = out_data.second;
+            return new OnionAdjustmentExecutor(std::move(deltas),
+                                               adjust_queries);
+        }
 
+        return executor.get();
+    } else if (ddl_dispatcher->canDo(lex)) {
+        const SQLHandler &handler = ddl_dispatcher->dispatch(lex);
+        AbstractQueryExecutor *const executor = handler.transformLex(a, lex);
+        /*
+        // FIXME: put HACK back
+        const std::string &original_query =
+            lex->sql_command != SQLCOM_LOCK_TABLES ? query : "do 0";
+        */
+
+        return executor;
+    }
+
+    return NULL;
+}
+
+AbstractQueryExecutor *
+Rewriter::dispatchOnLex_back(Analysis &a, const std::string &query, 
+                             const std::vector<std::unique_ptr<Delta> > &original_deltas)
+{
+    std::unique_ptr<query_parse> p;
+    try {
+        p = std::unique_ptr<query_parse>(
+                new query_parse(a.getDatabaseName(), query));
+    } catch (const CryptDBError &e) {
+        FAIL_TextMessageError("Bad Query: [" + query + "]\n"
+                              "Error Data: " + e.msg);
+    }
+    LEX *const lex = p->lex();
+
+    LOG(cdb_v) << "pre-analyze " << *lex;
+
+    // optimization: do not process queries that we will not rewrite
+    if (noRewrite(*lex)) {
+        return new SimpleExecutor();
+    } else if (dml_dispatcher->canDo(lex)) {
+        // HACK: We don't want to process INFORMATION_SCHEMA queries
+        if (SQLCOM_SELECT == lex->sql_command &&
+            lex->select_lex.table_list.first) {
+
+            const std::string &db = lex->select_lex.table_list.first->db;
+            if (equalsIgnoreCase("INFORMATION_SCHEMA", db)) {
+                return new SimpleExecutor();
+            }
+        }
+
+        const SQLHandler &handler = dml_dispatcher->dispatch(lex);
+        AssignOnce<AbstractQueryExecutor *> executor;
+
+        try {
+            executor = handler.transformLex(a, lex);
+        } catch (OnionAdjustExcept e) {
+            LOG(cdb_v) << "caught onion adjustment";
+            std::cout << GREEN_BEGIN << "Adjusting onion!" << COLOR_END
+                      << std::endl;
+            std::pair<std::vector<std::unique_ptr<Delta> >,
+                      std::list<std::string> >
+                out_data = adjustOnion_back(a, e.o, e.tm, e.fm, e.tolevel, original_deltas);
+            std::vector<std::unique_ptr<Delta> > &deltas = out_data.first;
+            const std::list<std::string> &adjust_queries = out_data.second;
             return new OnionAdjustmentExecutor(std::move(deltas),
                                                adjust_queries);
         }
@@ -1512,6 +1610,29 @@ Rewriter::rewrite(const std::string &q, const SchemaInfo &schema,
     // at this height.
     AbstractQueryExecutor *const executor =
         Rewriter::dispatchOnLex(analysis, q);
+    if (!executor) {
+        return QueryRewrite(true, analysis.rmeta, analysis.kill_zone,
+                            new NoOpExecutor());
+    }
+
+    return QueryRewrite(true, analysis.rmeta, analysis.kill_zone, executor);
+}
+
+QueryRewrite
+Rewriter::rewrite_back(const std::string &q, const SchemaInfo &schema,
+                       const std::string &default_db, const ProxyState &ps,
+                       const std::vector<std::unique_ptr<Delta> > &original_deltas)
+{
+    LOG(cdb_v) << "q " << q;
+    assert(0 == mysql_thread_init());
+
+    Analysis analysis(default_db, schema, ps.getMasterKey(),
+                      ps.defaultSecurityRating());
+
+    // NOTE: Care what data you try to read from Analysis
+    // at this height.
+    AbstractQueryExecutor *const executor =
+        Rewriter::dispatchOnLex_back(analysis, q, original_deltas);
     if (!executor) {
         return QueryRewrite(true, analysis.rmeta, analysis.kill_zone,
                             new NoOpExecutor());
@@ -1785,9 +1906,9 @@ nextImpl(const ResType &res, const NextParams &nparams)
 
         try {
             this->reissue_query_rewrite = new QueryRewrite(
-                Rewriter::rewrite(
+                Rewriter::rewrite_back(
                     nparams.original_query, *nparams.ps.getSchemaInfo().get(),
-                    nparams.default_db, nparams.ps));
+                    nparams.default_db, nparams.ps, this->deltas));
         } catch (const AbstractException &e) {
             FAIL_GenericPacketException(e.to_string());
         } catch (...) {

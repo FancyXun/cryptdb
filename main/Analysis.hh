@@ -137,7 +137,7 @@ public:
     virtual bool apply(const std::unique_ptr<Connect> &e_conn,
                        TableType table_type) = 0;
 
-protected:
+//protected:
     const DBMeta &parent_meta;
 
     std::string tableNameFromType(TableType table_type) const;
@@ -180,7 +180,7 @@ public:
           key(parent_meta.getKey(meta))
     {}
 
-protected:
+//protected:
     const DBMeta &meta;
     const AbstractMetaKey &key;
 };
