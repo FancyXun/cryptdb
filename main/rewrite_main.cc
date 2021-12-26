@@ -957,7 +957,7 @@ adjustOnion(const Analysis &a, onion o, const TableMeta &tm,
         adjust_queries.push_back(query);
     }
     */
-    TEST_UnexpectedSecurityLevel(o, tolevel, newlevel);
+    //TEST_UnexpectedSecurityLevel(o, tolevel, newlevel);
 
     return make_pair(std::move(deltas), adjust_queries);
     // return make_pair(deltas, adjust_queries);
