@@ -827,7 +827,6 @@ removeOnionLayer(const Analysis &a, const TableMeta &tm,
     // Remove the EncLayer.
     EncLayer const &back_el = om_adjustor->popBackEncLayer();
     // Update the Meta.
-    // 参考create table的代码
     deltas->push_back(std::unique_ptr<Delta>(
                         new DeleteDelta(back_el,
                                         om_adjustor->getOnionMeta())));
