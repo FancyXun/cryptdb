@@ -863,20 +863,18 @@ removeOnionLayer(const Analysis &a, const TableMeta &tm,
 }
 
 static std::string
-addOnionLayer_back(const Analysis &a, const TableMeta &tm,
+addOnionLayer(const Analysis &a, const TableMeta &tm,
               const FieldMeta &fm,
               OnionMetaAdjustor *const om_adjustor,
               SECLEVEL *const new_level,
               std::vector<std::unique_ptr<Delta> > *const deltas,
-              const std::vector<std::unique_ptr<Delta> > * original_deltas)
+              const std::vector<std::unique_ptr<Delta> > * deleteDelta)
 {
-    // Remove the EncLayer.
     std::vector<std::unique_ptr<Delta> > * nonconst_deltas = 
-        const_cast<std::vector<std::unique_ptr<Delta> > * > (original_deltas);
+        const_cast<std::vector<std::unique_ptr<Delta> > * > (deleteDelta);
     std::unique_ptr<Delta> a1 = std::move(nonconst_deltas->back());
     DeleteDelta* p1 = nullptr;
     p1 = reinterpret_cast<DeleteDelta*>(a1.get());
-    std::cout<<p1<<std::endl;
 
     // EncLayer back_el = reinterpret_cast<EncLayer>(p1->meta);
     // Update the Meta.
@@ -949,14 +947,6 @@ adjustOnion(const Analysis &a, onion o, const TableMeta &tm,
                              &deltas);
         adjust_queries.push_back(query);
     }
-    /*
-    while (newlevel < tolevel) {
-        auto query =
-            addOnionLayer(a, tm, fm, &om_adjustor, &newlevel, 
-                          &deltas);
-        adjust_queries.push_back(query);
-    }
-    */
     //TEST_UnexpectedSecurityLevel(o, tolevel, newlevel);
 
     return make_pair(std::move(deltas), adjust_queries);
@@ -965,9 +955,9 @@ adjustOnion(const Analysis &a, onion o, const TableMeta &tm,
 
 static std::pair<std::vector<std::unique_ptr<Delta> >,
                  std::list<std::string>>
-adjustOnion_back(const Analysis &a, onion o, const TableMeta &tm,
-                 const FieldMeta &fm, SECLEVEL tolevel,
-                 const std::vector<std::unique_ptr<Delta>> &original_deltas)
+adjustOnion(const Analysis &a, onion o, const TableMeta &tm,
+            const FieldMeta &fm, SECLEVEL tolevel,
+            const std::vector<std::unique_ptr<Delta>> &deleteDelta)
 {
     TEST_Text(tolevel >= a.getOnionMeta(fm, o).getMinimumSecLevel(),
               "your query requires to permissive of a security level");
@@ -991,8 +981,8 @@ adjustOnion_back(const Analysis &a, onion o, const TableMeta &tm,
 
     while (newlevel < tolevel) {
         auto query =
-            addOnionLayer_back(a, tm, fm, &om_adjustor, &newlevel, 
-                               &deltas, &original_deltas);
+            addOnionLayer(a, tm, fm, &om_adjustor, &newlevel, 
+                          &deltas, &deleteDelta);
         adjust_queries.push_back(query);
     }
     TEST_UnexpectedSecurityLevel(o, tolevel, newlevel);
@@ -1534,8 +1524,8 @@ Rewriter::dispatchOnLex(Analysis &a, const std::string &query)
 }
 
 AbstractQueryExecutor *
-Rewriter::dispatchOnLex_back(Analysis &a, const std::string &query, 
-                             const std::vector<std::unique_ptr<Delta> > &original_deltas)
+Rewriter::dispatchOnLex(Analysis &a, const std::string &query, 
+                        const std::vector<std::unique_ptr<Delta> > &deleteDelta)
 {
     std::unique_ptr<query_parse> p;
     try {
@@ -1574,7 +1564,7 @@ Rewriter::dispatchOnLex_back(Analysis &a, const std::string &query,
                       << std::endl;
             std::pair<std::vector<std::unique_ptr<Delta> >,
                       std::list<std::string> >
-                out_data = adjustOnion_back(a, e.o, e.tm, e.fm, e.tolevel, original_deltas);
+                out_data = adjustOnion(a, e.o, e.tm, e.fm, e.tolevel, deleteDelta);
             std::vector<std::unique_ptr<Delta> > &deltas = out_data.first;
             const std::list<std::string> &adjust_queries = out_data.second;
             return new OnionAdjustmentExecutor(std::move(deltas),
@@ -1620,9 +1610,9 @@ Rewriter::rewrite(const std::string &q, const SchemaInfo &schema,
 }
 
 QueryRewrite
-Rewriter::rewrite_back(const std::string &q, const SchemaInfo &schema,
-                       const std::string &default_db, const ProxyState &ps,
-                       const std::vector<std::unique_ptr<Delta> > &original_deltas)
+Rewriter::rewrite(const std::string &q, const SchemaInfo &schema,
+                  const std::string &default_db, const ProxyState &ps,
+                  const std::vector<std::unique_ptr<Delta> > &deleteDelta)
 {
     LOG(cdb_v) << "q " << q;
     assert(0 == mysql_thread_init());
@@ -1633,7 +1623,7 @@ Rewriter::rewrite_back(const std::string &q, const SchemaInfo &schema,
     // NOTE: Care what data you try to read from Analysis
     // at this height.
     AbstractQueryExecutor *const executor =
-        Rewriter::dispatchOnLex_back(analysis, q, original_deltas);
+        Rewriter::dispatchOnLex(analysis, q, deleteDelta);
     if (!executor) {
         return QueryRewrite(true, analysis.rmeta, analysis.kill_zone,
                             new NoOpExecutor());
@@ -1907,7 +1897,7 @@ nextImpl(const ResType &res, const NextParams &nparams)
 
         try {
             this->reissue_query_rewrite = new QueryRewrite(
-                Rewriter::rewrite_back(
+                Rewriter::rewrite(
                     nparams.original_query, *nparams.ps.getSchemaInfo().get(),
                     nparams.default_db, nparams.ps, this->deltas));
         } catch (const AbstractException &e) {
