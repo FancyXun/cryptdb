@@ -362,3 +362,29 @@ private:
     bool stales() const {return true;}
     bool usesEmbedded() const {return true;}
 };
+
+class rollbackExecutor : public AbstractQueryExecutor {
+    const std::vector<std::unique_ptr<Delta> > deltas;
+    const std::list<std::string> adjust_queries;
+
+    // coroutine state
+    bool first_reissue;
+    AssignOnce<std::shared_ptr<const SchemaInfo> > reissue_schema;
+    AssignOnce<uint64_t> embedded_completion_id;
+    AssignOnce<bool> in_trx;
+    QueryRewrite *reissue_query_rewrite;
+    AssignOnce<NextParams> reissue_nparams;
+
+public:
+    rollbackExecutor(std::vector<std::unique_ptr<Delta> > &&deltas,
+                            const std::list<std::string> &adjust_queries)
+        : deltas(std::move(deltas)),
+          adjust_queries(adjust_queries), first_reissue(true) {}
+
+    std::pair<ResultType, AbstractAnything *>
+        nextImpl(const ResType &res, const NextParams &nparams);
+
+private:
+    bool stales() const {return true;}
+    bool usesEmbedded() const {return true;}
+};

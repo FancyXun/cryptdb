@@ -1554,8 +1554,8 @@ Rewriter::rollbackOnLex(Analysis &a, const std::string &query,
     out_data = adjustOnion(a, onion::oPLAIN, tm, fm, SECLEVEL::DET, deleteDelta);
     std::vector<std::unique_ptr<Delta> > &deltas = out_data.first;
     const std::list<std::string> &adjust_queries = out_data.second;
-    return new OnionAdjustmentExecutor(std::move(deltas),
-                                        adjust_queries);
+
+    return new rollbackExecutor(std::move(deltas), adjust_queries);
 }
 
 QueryRewrite
@@ -1595,11 +1595,6 @@ Rewriter::rollback(const std::string &q, const SchemaInfo &schema,
     // at this height.
     AbstractQueryExecutor *const executor =
         Rewriter::rollbackOnLex(analysis, q, deleteDelta);
-    if (!executor) {
-        return QueryRewrite(true, analysis.rmeta, analysis.kill_zone,
-                            new NoOpExecutor());
-    }
-
     return QueryRewrite(true, analysis.rmeta, analysis.kill_zone, executor);
 }
 
@@ -1869,12 +1864,48 @@ nextImpl(const ResType &res, const NextParams &nparams)
                 FAIL_GenericPacketException(e.to_string());
             } catch (...) {
                 FAIL_GenericPacketException(
-                "unknown error occured while remove onion adjusment query");
+                "unknown error occured while add onion adjusment query");
             }
-            return CR_QUERY_RESULTS("ADD LAYER COMMIT");
+
+            auto result = 
+                this->reissue_query_rewrite->executor->next(
+                    ResType(true, 0, 0), reissue_nparams.get());
+            return result;
         }
         
-        
+    }
+
+    assert(false);
+}
+
+std::pair<AbstractQueryExecutor::ResultType, AbstractAnything *>
+rollbackExecutor::
+nextImpl(const ResType &res, const NextParams &nparams)
+{
+    reenter(this->corot) {
+
+        uint64_t embedded_completion_id;
+        deltaOutputBeforeQuery(nparams.ps.getEConn(),
+                               nparams.original_query, "",
+                               this->deltas,
+                               CompletionType::Onion,
+                               &embedded_completion_id);
+        this->embedded_completion_id = embedded_completion_id;
+
+        return CR_QUERY_RESULTS("ADD LAYER COMMIT");
+        // yield return CR_QUERY_AGAIN(this->query);
+        // TEST_ErrPkt(res.success(), "DML query failed against remote database");
+
+        // yield {
+        //     try {
+        //         this->last_query = true;
+        //         return CR_RESULTS(Rewriter::decryptResults(res, this->rmeta));
+        //     } catch (...) {
+        //         FAIL_GenericPacketException("error decrypting dml results");
+        //     }
+            
+        // }
+
     }
 
     assert(false);
