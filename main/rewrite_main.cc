@@ -971,12 +971,6 @@ adjustOnion(const Analysis &a, onion o, const TableMeta &tm,
 
     std::list<std::string> adjust_queries;
     std::vector<std::unique_ptr<Delta> > deltas;
-    while (newlevel > tolevel) {
-        auto query =
-            removeOnionLayer(a, tm, fm, &om_adjustor, &newlevel,
-                             &deltas);
-        adjust_queries.push_back(query);
-    }
 
     while (newlevel < tolevel) {
         auto query =
@@ -1523,9 +1517,12 @@ Rewriter::dispatchOnLex(Analysis &a, const std::string &query)
 }
 
 AbstractQueryExecutor *
-Rewriter::dispatchOnLex(Analysis &a, const std::string &query, 
+Rewriter::rollbackOnLex(Analysis &a, const std::string &query, 
                         const std::vector<std::unique_ptr<Delta> > &deleteDelta)
 {
+    char buf[query.size() + 1];
+    memcpy(buf, toLowerCase(query).c_str(), query.size());
+    
     std::unique_ptr<query_parse> p;
     try {
         p = std::unique_ptr<query_parse>(
@@ -1535,55 +1532,30 @@ Rewriter::dispatchOnLex(Analysis &a, const std::string &query,
                               "Error Data: " + e.msg);
     }
     LEX *const lex = p->lex();
-
     LOG(cdb_v) << "pre-analyze " << *lex;
 
-    // optimization: do not process queries that we will not rewrite
-    if (noRewrite(*lex)) {
-        return new SimpleExecutor();
-    } else if (dml_dispatcher->canDo(lex)) {
-        // HACK: We don't want to process INFORMATION_SCHEMA queries
-        if (SQLCOM_SELECT == lex->sql_command &&
-            lex->select_lex.table_list.first) {
+    std::string query_str(buf);
 
-            const std::string &db = lex->select_lex.table_list.first->db;
-            if (equalsIgnoreCase("INFORMATION_SCHEMA", db)) {
-                return new SimpleExecutor();
-            }
-        }
+    std::size_t start = query_str.find("where") + 5;
+    std::size_t end = query_str.find("like");
 
-        const SQLHandler &handler = dml_dispatcher->dispatch(lex);
-        AssignOnce<AbstractQueryExecutor *> executor;
+    std::string item_name = query_str.substr(start, end-start);
+    item_name.erase(std::remove(item_name.begin(), item_name.end(), ' '), item_name.end());
 
-        try {
-            executor = handler.transformLex(a, lex);
-        } catch (OnionAdjustExcept e) {
-            LOG(cdb_v) << "caught onion adjustment";
-            std::cout << GREEN_BEGIN << "Adjusting onion!" << COLOR_END
-                      << std::endl;
-            std::pair<std::vector<std::unique_ptr<Delta> >,
-                      std::list<std::string> >
-                out_data = adjustOnion(a, e.o, e.tm, e.fm, e.tolevel, deleteDelta);
-            std::vector<std::unique_ptr<Delta> > &deltas = out_data.first;
-            const std::list<std::string> &adjust_queries = out_data.second;
-            return new OnionAdjustmentExecutor(std::move(deltas),
-                                               adjust_queries);
-        }
-
-        return executor.get();
-    } else if (ddl_dispatcher->canDo(lex)) {
-        const SQLHandler &handler = ddl_dispatcher->dispatch(lex);
-        AbstractQueryExecutor *const executor = handler.transformLex(a, lex);
-        /*
-        // FIXME: put HACK back
-        const std::string &original_query =
-            lex->sql_command != SQLCOM_LOCK_TABLES ? query : "do 0";
-        */
-
-        return executor;
-    }
-
-    return NULL;
+    const TableMeta &tm =
+                a.getTableMeta(lex->select_lex.table_list.first->db, 
+                               lex->select_lex.table_list.first->table_name);
+    const FieldMeta &fm =
+            a.getFieldMeta(lex->select_lex.table_list.first->db, 
+                           lex->select_lex.table_list.first->table_name, 
+                           item_name);
+    std::pair<std::vector<std::unique_ptr<Delta> >,
+                std::list<std::string> >
+    out_data = adjustOnion(a, onion::oPLAIN, tm, fm, SECLEVEL::DET, deleteDelta);
+    std::vector<std::unique_ptr<Delta> > &deltas = out_data.first;
+    const std::list<std::string> &adjust_queries = out_data.second;
+    return new OnionAdjustmentExecutor(std::move(deltas),
+                                        adjust_queries);
 }
 
 QueryRewrite
@@ -1609,7 +1581,7 @@ Rewriter::rewrite(const std::string &q, const SchemaInfo &schema,
 }
 
 QueryRewrite
-Rewriter::rewrite(const std::string &q, const SchemaInfo &schema,
+Rewriter::rollback(const std::string &q, const SchemaInfo &schema,
                   const std::string &default_db, const ProxyState &ps,
                   const std::vector<std::unique_ptr<Delta> > &deleteDelta)
 {
@@ -1622,7 +1594,7 @@ Rewriter::rewrite(const std::string &q, const SchemaInfo &schema,
     // NOTE: Care what data you try to read from Analysis
     // at this height.
     AbstractQueryExecutor *const executor =
-        Rewriter::dispatchOnLex(analysis, q, deleteDelta);
+        Rewriter::rollbackOnLex(analysis, q, deleteDelta);
     if (!executor) {
         return QueryRewrite(true, analysis.rmeta, analysis.kill_zone,
                             new NoOpExecutor());
@@ -1887,24 +1859,22 @@ nextImpl(const ResType &res, const NextParams &nparams)
             
         }
 
-        yield return CR_QUERY_RESULTS("COMMIT;COMMIT;COMMIT");
-        // if the client was in the middle of a transaction we must alert
-        // him that we had to rollback his queries
-        if (true == this->in_trx.get()) {
-            ROLLBACK_ERROR_PACKET
-        }
-
-        try {
+        yield {
+            try {
             this->reissue_query_rewrite = new QueryRewrite(
-                Rewriter::rewrite(
+                Rewriter::rollback(
                     nparams.original_query, *nparams.ps.getSchemaInfo().get(),
                     nparams.default_db, nparams.ps, this->deltas));
-        } catch (const AbstractException &e) {
-            FAIL_GenericPacketException(e.to_string());
-        } catch (...) {
-            FAIL_GenericPacketException(
-                "unknown error occured while rewriting_back onion adjusment query");
+            } catch (const AbstractException &e) {
+                FAIL_GenericPacketException(e.to_string());
+            } catch (...) {
+                FAIL_GenericPacketException(
+                "unknown error occured while remove onion adjusment query");
+            }
+            return CR_QUERY_RESULTS("ADD LAYER COMMIT");
         }
+        
+        
     }
 
     assert(false);

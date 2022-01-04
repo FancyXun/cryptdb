@@ -1275,8 +1275,6 @@ nextImpl(const ResType &res, const NextParams &nparams)
             
         }
 
-        yield return CR_QUERY_AGAIN("COMMIT;COMMIT");
-
     }
 
     assert(false);

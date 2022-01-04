@@ -78,10 +78,10 @@ public:
                 const std::string &default_db,
                 const ProxyState &ps);
     static QueryRewrite
-        rewrite(const std::string &q, SchemaInfo const &schema,
-                const std::string &default_db,
-                const ProxyState &ps, 
-                const std::vector<std::unique_ptr<Delta> > &deleteDelta);      
+        rollback(const std::string &q, SchemaInfo const &schema,
+                 const std::string &default_db,
+                 const ProxyState &ps, 
+                 const std::vector<std::unique_ptr<Delta> > &deleteDelta);      
 
     static ResType
         decryptResults(const ResType &dbres, const ReturnMeta &rm);
@@ -90,7 +90,7 @@ private:
     static AbstractQueryExecutor *
         dispatchOnLex(Analysis &a, const std::string &query);
     static AbstractQueryExecutor *
-        dispatchOnLex(Analysis &a, const std::string &query, 
+        rollbackOnLex(Analysis &a, const std::string &query, 
                       const std::vector<std::unique_ptr<Delta> > &deleteDelta);
     static const bool translator_dummy;
     static const std::unique_ptr<SQLDispatcher> dml_dispatcher;
