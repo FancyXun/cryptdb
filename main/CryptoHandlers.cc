@@ -790,6 +790,7 @@ public:
     Item *encrypt(const Item &ptext, uint64_t IV) const;
     Item *decrypt(const Item &ctext, uint64_t IV) const;
     Item * decryptUDF(Item * const col, Item * const ivcol = NULL) const;
+    Item * encryptUDF(Item * const col, Item * const ivcol = NULL) const;
 
 protected:
     const std::string rawkey;
@@ -1034,6 +1035,20 @@ static udf_func u_decDETStr = {
     0L,
 };
 
+static udf_func u_encDETStr = {
+    LEXSTRING("cryptdb_encrypt_text_det"),
+    STRING_RESULT,
+    UDFTYPE_FUNCTION,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    0L,
+};
+
 
 
 Item *
@@ -1043,6 +1058,16 @@ DET_str::decryptUDF(Item * const col, Item * const ivcol) const
     l.push_back(col);
     l.push_back(get_key_item(rawkey));
     return new (current_thd->mem_root) Item_func_udf_str(&u_decDETStr, l);
+
+}
+
+Item *
+DET_str::encryptUDF(Item * const col, Item * const ivcol) const
+{
+    List<Item> l;
+    l.push_back(col);
+    l.push_back(get_key_item(rawkey));
+    return new (current_thd->mem_root) Item_func_udf_str(&u_encDETStr, l);
 
 }
 

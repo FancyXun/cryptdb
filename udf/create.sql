@@ -73,6 +73,7 @@ CREATE FUNCTION cryptdb_decrypt_int_sem RETURNS INTEGER SONAME 'edb.so';
 CREATE FUNCTION cryptdb_decrypt_text_sem RETURNS STRING SONAME 'edb.so';
 CREATE FUNCTION cryptdb_decrypt_int_det RETURNS INTEGER SONAME 'edb.so';
 CREATE FUNCTION cryptdb_decrypt_text_det RETURNS STRING SONAME 'edb.so';
+CREATE FUNCTION cryptdb_encrypt_text_det RETURNS STRING SONAME 'edb.so';
 CREATE FUNCTION cryptdb_func_add_set RETURNS STRING SONAME 'edb.so';
 CREATE AGGREGATE FUNCTION cryptdb_agg RETURNS STRING SONAME 'edb.so';
 CREATE FUNCTION cryptdb_searchSWP RETURNS INTEGER SONAME 'edb.so';

@@ -865,7 +865,7 @@ static std::string
 addOnionLayer(const Analysis &a, const TableMeta &tm,
               const FieldMeta &fm,
               OnionMetaAdjustor *const om_adjustor,
-              SECLEVEL *const new_level,
+              SECLEVEL *const tolevel,
               std::vector<std::unique_ptr<Delta> > *const deltas,
               const std::vector<std::unique_ptr<Delta> > * deleteDelta)
 {
@@ -875,16 +875,16 @@ addOnionLayer(const Analysis &a, const TableMeta &tm,
     DeleteDelta* p1 = nullptr;
     p1 = reinterpret_cast<DeleteDelta*>(a1.get());
 
-    // EncLayer back_el = reinterpret_cast<EncLayer>(p1->meta);
-    // Update the Meta.
     deltas->push_back(std::unique_ptr<Delta>(
                         new InsertDelta(p1->meta,
                                         p1->parent_meta)));
-    const SECLEVEL local_new_level = SECLEVEL::DET;
-    /*
-    //removes onion layer at the DB
+
+    DBMeta &back_meta = const_cast<DBMeta&>(p1->meta);
+    EncLayer const &back_el = reinterpret_cast<EncLayer&>(back_meta);
+
     const std::string dbname = a.getDatabaseName();
     const std::string anon_table_name = tm.getAnonTableName();
+
     Item_field *const salt =
         new Item_field(NULL, dbname.c_str(), anon_table_name.c_str(),
                        fm.getSaltName().c_str());
@@ -893,23 +893,14 @@ addOnionLayer(const Analysis &a, const TableMeta &tm,
     Item_field *const field =
         new Item_field(NULL, dbname.c_str(), anon_table_name.c_str(),
                        fieldanon.c_str());
+    
+    Item *const encUDF = back_el.encryptUDF(field, salt);
 
-    Item *const decUDF = back_el.decryptUDF(field, salt);
+    std::cout << " UPDATE " << quoteText(dbname) << "." << anon_table_name
+          << "    SET " << fieldanon  << salt << field << encUDF <<std::endl;
 
     std::stringstream query;
-    query << " UPDATE " << quoteText(dbname) << "." << anon_table_name
-          << "    SET " << fieldanon  << " = " << *decUDF
-          << ";";
-
-    std::cerr << GREEN_BEGIN << "\nADJUST: \n" << COLOR_END << terminalEscape(query.str()) << std::endl;
-
-    //execute decryption query
-
-    LOG(cdb_v) << "adjust onions: \n" << query.str() << std::endl;
-    */
-    std::stringstream query;
-    query << " TEST;";
-    *new_level = local_new_level;
+    query << " TEST ";
     return query.str();
 }
 
@@ -972,12 +963,10 @@ adjustOnion(const Analysis &a, onion o, const TableMeta &tm,
     std::list<std::string> adjust_queries;
     std::vector<std::unique_ptr<Delta> > deltas;
 
-    while (newlevel < tolevel) {
-        auto query =
-            addOnionLayer(a, tm, fm, &om_adjustor, &newlevel, 
-                          &deltas, &deleteDelta);
-        adjust_queries.push_back(query);
-    }
+    
+    auto query = addOnionLayer(a, tm, fm, &om_adjustor, &tolevel, &deltas, &deleteDelta);
+    adjust_queries.push_back(query);
+    
     TEST_UnexpectedSecurityLevel(o, tolevel, newlevel);
 
     return make_pair(std::move(deltas), adjust_queries);
@@ -1893,19 +1882,6 @@ nextImpl(const ResType &res, const NextParams &nparams)
         this->embedded_completion_id = embedded_completion_id;
 
         return CR_QUERY_RESULTS("ADD LAYER COMMIT");
-        // yield return CR_QUERY_AGAIN(this->query);
-        // TEST_ErrPkt(res.success(), "DML query failed against remote database");
-
-        // yield {
-        //     try {
-        //         this->last_query = true;
-        //         return CR_RESULTS(Rewriter::decryptResults(res, this->rmeta));
-        //     } catch (...) {
-        //         FAIL_GenericPacketException("error decrypting dml results");
-        //     }
-            
-        // }
-
     }
 
     assert(false);
