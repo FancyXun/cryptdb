@@ -896,11 +896,16 @@ addOnionLayer(const Analysis &a, const TableMeta &tm,
     
     Item *const encUDF = back_el.encryptUDF(field, salt);
 
-    std::cout << " UPDATE " << quoteText(dbname) << "." << anon_table_name
-          << "    SET " << fieldanon  << salt << field << encUDF <<std::endl;
-
     std::stringstream query;
-    query << " TEST ";
+    query << " UPDATE " << quoteText(dbname) << "." << anon_table_name
+          << "    SET " << fieldanon  << " = " << *encUDF
+          << ";";
+
+    std::cerr << GREEN_BEGIN << "\nADJUST: \n" << COLOR_END << terminalEscape(query.str()) << std::endl;
+
+    //execute encryption query
+
+    LOG(cdb_v) << "adjust onions: \n" << query.str() << std::endl;
     return query.str();
 }
 
@@ -1881,7 +1886,23 @@ nextImpl(const ResType &res, const NextParams &nparams)
                                &embedded_completion_id);
         this->embedded_completion_id = embedded_completion_id;
 
-        return CR_QUERY_RESULTS("ADD LAYER COMMIT");
+        // always rollback
+        yield return CR_QUERY_AGAIN("ROLLBACK");
+        TEST_ErrPkt(res.success(), "failed to rollback");
+
+        yield return CR_QUERY_AGAIN("START TRANSACTION");
+        TEST_ErrPkt(res.success(), "failed to start transaction");
+
+        // issue first adjustment
+        yield return CR_QUERY_AGAIN(this->adjust_queries.front());
+        CR_ROLLBACK_AND_FAIL(res,
+                        "failed to execute first onion adjustment query!");
+        
+        TEST_ErrPkt(res.success(), "failed issuing adjustment completion");
+
+        yield return CR_QUERY_AGAIN("COMMIT");
+
+        yield return CR_QUERY_RESULTS("ADD LAYER COMMIT");
     }
 
     assert(false);
