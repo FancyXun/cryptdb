@@ -972,8 +972,6 @@ adjustOnion(const Analysis &a, onion o, const TableMeta &tm,
     auto query = addOnionLayer(a, tm, fm, &om_adjustor, &tolevel, &deltas, &deleteDelta);
     adjust_queries.push_back(query);
     
-    TEST_UnexpectedSecurityLevel(o, tolevel, newlevel);
-
     return make_pair(std::move(deltas), adjust_queries);
     // return make_pair(deltas, adjust_queries);
 }
@@ -1866,6 +1864,23 @@ nextImpl(const ResType &res, const NextParams &nparams)
                     ResType(true, 0, 0), reissue_nparams.get());
             return result;
         }
+
+        // always rollback
+        yield return CR_QUERY_AGAIN("START TRANSACTION");
+        TEST_ErrPkt(res.success(), "failed to start transaction");
+
+        // issue first adjustment
+        yield return this->reissue_query_rewrite->executor->next(
+                         ResType(true, 0, 0), reissue_nparams.get());
+
+        
+        CR_ROLLBACK_AND_FAIL(res, "failed to execute first onion adjustment query!");
+        
+        TEST_ErrPkt(res.success(), "failed issuing adjustment completion");
+
+        yield return CR_QUERY_AGAIN("COMMIT");
+
+        yield return CR_QUERY_RESULTS("ADD LAYER COMMIT");
         
     }
 
@@ -1888,21 +1903,8 @@ nextImpl(const ResType &res, const NextParams &nparams)
 
         // always rollback
         yield return CR_QUERY_AGAIN("ROLLBACK");
-        TEST_ErrPkt(res.success(), "failed to rollback");
 
-        yield return CR_QUERY_AGAIN("START TRANSACTION");
-        TEST_ErrPkt(res.success(), "failed to start transaction");
-
-        // issue first adjustment
         yield return CR_QUERY_AGAIN(this->adjust_queries.front());
-        CR_ROLLBACK_AND_FAIL(res,
-                        "failed to execute first onion adjustment query!");
-        
-        TEST_ErrPkt(res.success(), "failed issuing adjustment completion");
-
-        yield return CR_QUERY_AGAIN("COMMIT");
-
-        yield return CR_QUERY_RESULTS("ADD LAYER COMMIT");
     }
 
     assert(false);

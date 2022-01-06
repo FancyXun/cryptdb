@@ -2029,6 +2029,7 @@ const std::vector<udf_func*> udf_list = {
     &u_decRNDString,
     &u_decDETInt,
     &u_decDETStr,
+    &u_encDETStr,
     &u_sum_f,
     &u_sum_a,
     &u_search,
