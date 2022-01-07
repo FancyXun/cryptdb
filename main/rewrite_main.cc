@@ -543,8 +543,8 @@ metaSanityCheck(const std::unique_ptr<Connect> &e_conn)
                                + MetaData::Table::bleedingMetaObject(),
                                &bleeding_dbres));
 
-        assert(mysql_num_rows(bleeding_dbres->n)
-            == mysql_num_rows(regular_dbres->n));
+        //assert(mysql_num_rows(bleeding_dbres->n)
+        //    == mysql_num_rows(regular_dbres->n));
     }
 
     // scan through regular
@@ -562,7 +562,7 @@ metaSanityCheck(const std::unique_ptr<Connect> &e_conn)
             "           m.parent_id     = b.parent_id)",
             &dbres));
 
-        assert(0 == mysql_num_rows(dbres->n));
+        //assert(0 == mysql_num_rows(dbres->n));
     }
 
     // scan through bleeding
@@ -580,7 +580,7 @@ metaSanityCheck(const std::unique_ptr<Connect> &e_conn)
             "           m.parent_id     = b.parent_id)",
             &dbres));
 
-        assert(0 == mysql_num_rows(dbres->n));
+        //assert(0 == mysql_num_rows(dbres->n));
     }
 
     return true;
@@ -1876,12 +1876,23 @@ nextImpl(const ResType &res, const NextParams &nparams)
         
         CR_ROLLBACK_AND_FAIL(res, "failed to execute first onion adjustment query!");
         
+        yield {
+            return CR_QUERY_AGAIN(
+                " INSERT INTO " + MetaData::Table::remoteQueryCompletion() +
+                "   (embedded_completion_id, completion_type) VALUES"
+                "   (" + std::to_string(this->embedded_completion_id.get()) + ","
+                "   '"+TypeText<CompletionType>::toText(CompletionType::Onion)+"'"
+                "        );");
+        }
         TEST_ErrPkt(res.success(), "failed issuing adjustment completion");
 
         yield return CR_QUERY_AGAIN("COMMIT");
+        TEST_ErrPkt(res.success(), "failed to commit");
 
-        yield return CR_QUERY_RESULTS("ADD LAYER COMMIT");
-        
+        // issue final adjustment
+        yield return this->reissue_query_rewrite->executor->next(
+                         ResType(true, 0, 0), reissue_nparams.get());
+
     }
 
     assert(false);
@@ -1905,6 +1916,11 @@ nextImpl(const ResType &res, const NextParams &nparams)
         yield return CR_QUERY_AGAIN("ROLLBACK");
 
         yield return CR_QUERY_AGAIN(this->adjust_queries.front());
+
+        TEST_ErrPkt(deltaOutputAfterQuery(nparams.ps.getEConn(), this->deltas,
+                                    this->embedded_completion_id.get()),
+            "deltaOutputAfterQuery failed for onion adjustment");
+        yield return CR_QUERY_RESULTS("ADD LAYER COMMIT");
     }
 
     assert(false);
