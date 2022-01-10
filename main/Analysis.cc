@@ -653,14 +653,28 @@ bool InsertDelta::apply(const std::unique_ptr<Connect> &e_conn,
     const std::string serial_key = key.getSerial();
     const std::string esc_serial_key = escapeString(e_conn, serial_key);
 
-    const std::string &query =
+    const std::string &query_regular =
         " INSERT INTO " + table_name + 
         "    (serial_object, serial_key, parent_id, id) VALUES (" 
         " '" + esc_child_serial + "',"
         " '" + esc_serial_key + "',"
         " " + std::to_string(parent_id) + ","
         " " + std::to_string(child_id) + ");";
-    RETURN_FALSE_IF_FALSE(e_conn->execute(query));
+    
+    const std::string &query_bleeding =
+        " INSERT INTO " + table_name +
+        "    (serial_object, serial_key, parent_id, id) VALUES ("
+        " '" + esc_child_serial + "',"
+        " '" + esc_serial_key + "',"
+        " " + std::to_string(parent_id) + ","
+        " " + "0" + ");";
+    
+    if (table_type == TableType::REGULAR_TABLE){
+        RETURN_FALSE_IF_FALSE(e_conn->execute(query_regular));
+    } else if (table_type == TableType::BLEEDING_TABLE) {
+        RETURN_FALSE_IF_FALSE(e_conn->execute(query_bleeding));
+    }
+
     return true;
 }
 
