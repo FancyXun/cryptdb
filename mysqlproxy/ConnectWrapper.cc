@@ -480,6 +480,15 @@ next(lua_State *const L)
             returnResultSet(L, res);        // pushes 4 items on stack
             return 5;
         }
+        case AbstractQueryExecutor::ResultType::NO_RESULTS: {
+            xlua_pushlstring(L, "no-results");
+            const auto &new_query =
+                std::get<1>(new_results)->extract<std::string>();
+
+            xlua_pushlstring(L, new_query);
+            nilBuffer(L, 3);
+            return 5;
+        }
         default:
             assert(false);
         }

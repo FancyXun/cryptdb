@@ -1920,7 +1920,7 @@ nextImpl(const ResType &res, const NextParams &nparams)
         TEST_ErrPkt(deltaOutputAfterQuery(nparams.ps.getEConn(), this->deltas,
                                     this->embedded_completion_id.get()),
             "deltaOutputAfterQuery failed for onion adjustment");
-        yield return CR_QUERY_RESULTS("ADD LAYER COMMIT");
+        yield return CR_NO_RESULTS("ADD LAYER COMMIT FINISH");
     }
 
     assert(false);

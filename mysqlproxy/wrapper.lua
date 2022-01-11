@@ -291,6 +291,12 @@ function next_handler(from, status, client, fields, rows, affected_rows,
         proxy.response.sqlstate = param2
 
         return proxy.PROXY_SEND_RESULT
+    
+    elseif "no-results" == control then
+        local query = param0
+        printred("NO RESULT: ".. query)
+        print("================================================")
+        return proxy.PROXY_IGNORE_RESULT
     end
 
     assert(nil)
