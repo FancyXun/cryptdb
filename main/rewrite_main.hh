@@ -77,6 +77,11 @@ public:
         rewrite(const std::string &q, SchemaInfo const &schema,
                 const std::string &default_db,
                 const ProxyState &ps);
+    static QueryRewrite
+        rollback(const std::string &q, SchemaInfo const &schema,
+                 const std::string &default_db,
+                 const ProxyState &ps, 
+                 const std::vector<std::unique_ptr<Delta> > &deleteDelta);      
 
     static ResType
         decryptResults(const ResType &dbres, const ReturnMeta &rm);
@@ -84,7 +89,9 @@ public:
 private:
     static AbstractQueryExecutor *
         dispatchOnLex(Analysis &a, const std::string &query);
-
+    static AbstractQueryExecutor *
+        rollbackOnLex(Analysis &a, const std::string &query, 
+                      const std::vector<std::unique_ptr<Delta> > &deleteDelta);
     static const bool translator_dummy;
     static const std::unique_ptr<SQLDispatcher> dml_dispatcher;
     static const std::unique_ptr<SQLDispatcher> ddl_dispatcher;
@@ -344,6 +351,32 @@ class OnionAdjustmentExecutor : public AbstractQueryExecutor {
 
 public:
     OnionAdjustmentExecutor(std::vector<std::unique_ptr<Delta> > &&deltas,
+                            const std::list<std::string> &adjust_queries)
+        : deltas(std::move(deltas)),
+          adjust_queries(adjust_queries), first_reissue(true) {}
+
+    std::pair<ResultType, AbstractAnything *>
+        nextImpl(const ResType &res, const NextParams &nparams);
+
+private:
+    bool stales() const {return true;}
+    bool usesEmbedded() const {return true;}
+};
+
+class rollbackExecutor : public AbstractQueryExecutor {
+    const std::vector<std::unique_ptr<Delta> > deltas;
+    const std::list<std::string> adjust_queries;
+
+    // coroutine state
+    bool first_reissue;
+    AssignOnce<std::shared_ptr<const SchemaInfo> > reissue_schema;
+    AssignOnce<uint64_t> embedded_completion_id;
+    AssignOnce<bool> in_trx;
+    QueryRewrite *reissue_query_rewrite;
+    AssignOnce<NextParams> reissue_nparams;
+
+public:
+    rollbackExecutor(std::vector<std::unique_ptr<Delta> > &&deltas,
                             const std::list<std::string> &adjust_queries)
         : deltas(std::move(deltas)),
           adjust_queries(adjust_queries), first_reissue(true) {}

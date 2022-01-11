@@ -1267,11 +1267,14 @@ nextImpl(const ResType &res, const NextParams &nparams)
 
         yield {
             try {
+                this->last_query = true;
                 return CR_RESULTS(Rewriter::decryptResults(res, this->rmeta));
             } catch (...) {
                 FAIL_GenericPacketException("error decrypting dml results");
             }
+            
         }
+
     }
 
     assert(false);

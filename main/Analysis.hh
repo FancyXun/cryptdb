@@ -137,7 +137,7 @@ public:
     virtual bool apply(const std::unique_ptr<Connect> &e_conn,
                        TableType table_type) = 0;
 
-protected:
+//protected:
     const DBMeta &parent_meta;
 
     std::string tableNameFromType(TableType table_type) const;
@@ -173,14 +173,14 @@ private:
 };
 
 class DerivedKeyDelta : public Delta {
-public:
+public: 
     DerivedKeyDelta(const DBMeta &meta,
                     const DBMeta &parent_meta)
         : Delta(parent_meta), meta(meta),
           key(parent_meta.getKey(meta))
     {}
 
-protected:
+//protected:
     const DBMeta &meta;
     const AbstractMetaKey &key;
 };
@@ -197,6 +197,15 @@ public:
 class DeleteDelta : public DerivedKeyDelta {
 public:
     DeleteDelta(const DBMeta &meta, const DBMeta &parent_meta)
+        : DerivedKeyDelta(meta, parent_meta) {}
+
+    bool apply(const std::unique_ptr<Connect> &e_conn,
+               TableType table_type);
+};
+
+class InsertDelta : public DerivedKeyDelta {
+public:
+    InsertDelta(const DBMeta &meta, const DBMeta &parent_meta)
         : DerivedKeyDelta(meta, parent_meta) {}
 
     bool apply(const std::unique_ptr<Connect> &e_conn,

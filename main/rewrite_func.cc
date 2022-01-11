@@ -765,6 +765,13 @@ static class ANON : public CItemSubtypeFT<Item_func_like, Item_func::Functype::L
     virtual RewritePlan *
     do_gather_type(const Item_func_like &i, Analysis &a) const
     {
+	/*
+	const EncSet out_es = PLAIN_EncSet;
+        const EncSet child_es = Search_EncSet;
+        const std::string why = "like";
+
+        return iterateGather(i, out_es, child_es, why, a);
+	*/
         TEST_BadItemArgumentCount(i.type(), 2, i.argument_count());
         const std::string why = "like";
         return allPlainIterateGather(i, why, a);

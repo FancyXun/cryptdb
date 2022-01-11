@@ -72,6 +72,13 @@ public:
         thrower() << "decryptUDF not supported";
     }
 
+    // returns the encryptUDF to add the onion layer
+    virtual Item *encryptUDF(Item * const col, Item * const ivcol = NULL)
+        const
+    {
+        thrower() << "encryptUDF not supported";
+    }
+
     virtual std::string doSerialize() const = 0;
     std::string serialize(const DBObject &parent) const
     {

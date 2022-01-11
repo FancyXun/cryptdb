@@ -105,8 +105,8 @@ MetaData::initialize(const std::unique_ptr<Connect> &conn,
         "   (serial_object VARBINARY(500) NOT NULL,"
         "    serial_key VARBINARY(500) NOT NULL,"
         "    parent_id BIGINT NOT NULL,"
-        "    id SERIAL PRIMARY KEY)"
-        " ENGINE=InnoDB;";
+        "    id SERIAL PRIMARY KEY)";
+        // " ENGINE=InnoDB;";
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_meta_table));
 
     const std::string create_bleeding_table =
@@ -114,8 +114,8 @@ MetaData::initialize(const std::unique_ptr<Connect> &conn,
         "   (serial_object VARBINARY(500) NOT NULL,"
         "    serial_key VARBINARY(500) NOT NULL,"
         "    parent_id BIGINT NOT NULL,"
-        "    id SERIAL PRIMARY KEY)"
-        " ENGINE=InnoDB;";
+        "    id SERIAL PRIMARY KEY)";
+        // " ENGINE=InnoDB;";
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_bleeding_table));
 
     {
@@ -128,8 +128,8 @@ MetaData::initialize(const std::unique_ptr<Connect> &conn,
             "    default_db VARCHAR(500),"      // default database is NULLable
             "    aborted BOOLEAN NOT NULL,"
             "    type VARCHAR(100) NOT NULL,"
-            "    id SERIAL PRIMARY KEY)"
-            " ENGINE=InnoDB;";
+            "    id SERIAL PRIMARY KEY)";
+            // " ENGINE=InnoDB;";
         RETURN_FALSE_IF_FALSE(e_conn->execute(create_embedded_completion));
     }
 
@@ -137,8 +137,8 @@ MetaData::initialize(const std::unique_ptr<Connect> &conn,
         " CREATE TABLE IF NOT EXISTS " + Table::staleness() +
         "   (cache_id BIGINT UNIQUE NOT NULL,"
         "    stale BOOLEAN NOT NULL,"
-        "    id SERIAL PRIMARY KEY)"
-        " ENGINE=InnoDB;";
+        "    id SERIAL PRIMARY KEY)";
+        // " ENGINE=InnoDB;";
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_staleness));
 
     const std::string create_show_directive =
@@ -148,8 +148,8 @@ MetaData::initialize(const std::unique_ptr<Connect> &conn,
         "    _field VARCHAR(500) NOT NULL,"
         "    _onion VARCHAR(500) NOT NULL,"
         "    _level VARCHAR(500) NOT NULL,"
-        "    id SERIAL PRIMARY KEY)"
-        " ENGINE=InnoDB;";
+        "    id SERIAL PRIMARY KEY)";
+        // " ENGINE=InnoDB;";
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_show_directive));
 
     // Remote database.
@@ -161,8 +161,8 @@ MetaData::initialize(const std::unique_ptr<Connect> &conn,
         " CREATE TABLE IF NOT EXISTS " + Table::remoteQueryCompletion() +
         "   (embedded_completion_id INTEGER NOT NULL,"
         "    completion_type VARCHAR(100) NOT NULL,"
-        "    id SERIAL PRIMARY KEY)"
-        " ENGINE=InnoDB;";
+        "    id SERIAL PRIMARY KEY)";
+        // " ENGINE=InnoDB;";
     RETURN_FALSE_IF_FALSE(conn->execute(create_remote_completion));
 
     initialized = true;

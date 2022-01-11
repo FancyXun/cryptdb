@@ -111,7 +111,7 @@ query_parse::query_parse(const std::string &db, const std::string &q)
     try {
         t->set_db(db.data(), db.length());
         mysql_reset_thd_for_next_command(t);
-        t->stmt_arena->state = Query_arena::STMT_INITIALIZED;
+        // t->stmt_arena->state = Query_arena::STMT_INITIALIZED;
 
         // default engine should always be InnoDB
         t->variables.table_plugin = getInnoDBPlugin();
@@ -200,8 +200,8 @@ query_parse::query_parse(const std::string &db, const std::string &q)
         lex->select_lex.context.resolve_in_table_list_only(
             lex->select_lex.table_list.first);
 
-        if (t->fill_derived_tables())
-            throw CryptDBError("fill_derived_tables");
+        //if (t->fill_derived_tables())
+        //    throw CryptDBError("fill_derived_tables");
 
         if (open_normal_and_derived_tables(t, lex->query_tables, 0))
             throw CryptDBError("open_normal_and_derived_tables");

@@ -55,6 +55,14 @@ char *    cryptdb_decrypt_text_det(UDF_INIT *const initid, UDF_ARGS *const args,
                                    char *const result, unsigned long *const length,
                                    char *const is_null, char *const error);
 
+my_bool   cryptdb_encrypt_text_det_init(UDF_INIT *const initid,
+                                        UDF_ARGS *const args,
+                                        char *const message);
+void      cryptdb_encrypt_text_det_deinit(UDF_INIT *const initid);
+char *    cryptdb_encrypt_text_det(UDF_INIT *const initid, UDF_ARGS *const args,
+                                   char *const result, unsigned long *const length,
+                                   char *const is_null, char *const error);
+
 my_bool   cryptdb_searchSWP_init(UDF_INIT *const initid, UDF_ARGS *const args,
                                  char *const message);
 void      cryptdb_searchSWP_deinit(UDF_INIT *const initid);
@@ -383,6 +391,70 @@ cryptdb_decrypt_text_det(UDF_INIT *const initid, UDF_ARGS *const args,
     *length = value.get().length();
     return initid->ptr;
 }
+
+my_bool
+cryptdb_encrypt_text_det_init(UDF_INIT *const initid, UDF_ARGS *const args,
+                              char *const message)
+{
+    if (args->arg_count != 2 ||
+        args->arg_type[0] != STRING_RESULT ||
+        args->arg_type[1] != STRING_RESULT)
+    {
+        strcpy(message, "Usage: cryptdb_encrypt_text_det(string ciphertext, string key)");
+        return 1;
+    }
+
+    initid->maybe_null = 1;
+    return 0;
+}
+
+void
+cryptdb_encrypt_text_det_deinit(UDF_INIT *const initid)
+{
+    /*
+     * in mysql-server/sql/item_func.cc, udf_handler::fix_fields
+     * initializes initid.ptr=0 for us.
+     */
+    if (initid->ptr)
+        delete[] initid->ptr;
+}
+
+char *
+cryptdb_encrypt_text_det(UDF_INIT *const initid, UDF_ARGS *const args,
+                         char *const result, unsigned long *const length,
+                         char *const is_null, char *const error)
+{
+    AssignFirst<std::string> value;
+    if (NULL == args->args[0]) {
+        value = "";
+        *is_null = 1;
+    } else {
+        try {
+            uint64_t eValueLen;
+            char *const eValueBytes = getba(args, 0, eValueLen);
+
+            uint64_t keyLen;
+            char *const keyBytes = getba(args, 1, keyLen);
+            const std::string key = std::string(keyBytes, keyLen);
+
+            const std::unique_ptr<AES_KEY> aesKey(get_AES_enc_key(key));
+            value =
+                encrypt_AES_CMC(std::string(eValueBytes,
+                                    static_cast<unsigned int>(eValueLen)),
+                                aesKey.get(), true);
+        } catch (const CryptoError &e) {
+            std::cerr << e.msg << std::endl;
+            value = "";
+        }
+    }
+
+    char *const res = new char[value.get().length()];
+    initid->ptr = res;
+    memcpy(res, value.get().data(), value.get().length());
+    *length = value.get().length();
+    return initid->ptr;
+}
+
 
 /*
  * given field of the form:   len1 word1 len2 word2 len3 word3 ...,

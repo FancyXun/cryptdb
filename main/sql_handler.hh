@@ -15,6 +15,10 @@
     std::make_pair(AbstractQueryExecutor::ResultType::QUERY_USE_RESULTS,    \
                    newAnything(std::string(query)))
 
+#define CR_NO_RESULTS(query)                                                   \
+    std::make_pair(AbstractQueryExecutor::ResultType::NO_RESULTS,              \
+                   newAnything(std::string(query)))
+
 #define CR_RESULTS(value)                                                   \
     std::make_pair(AbstractQueryExecutor::ResultType::RESULTS,              \
                    newAnything(value))
@@ -65,7 +69,7 @@ protected:
     coroutine corot;
 
 public:
-    enum class ResultType {RESULTS, QUERY_COME_AGAIN, QUERY_USE_RESULTS};
+    enum class ResultType {RESULTS, QUERY_COME_AGAIN, NO_RESULTS, QUERY_USE_RESULTS};
 
     AbstractQueryExecutor() {}
     virtual ~AbstractQueryExecutor();
@@ -76,6 +80,8 @@ public:
         nextImpl(const ResType &res, const NextParams &nparams) = 0;
     virtual bool stales() const {return false;}
     virtual bool usesEmbedded() const {return false;}
+
+    bool last_query = false;
 
 private:
     void genericPreamble(const NextParams &nparams);
