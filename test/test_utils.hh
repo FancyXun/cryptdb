@@ -25,7 +25,7 @@ class TestConfig {
     TestConfig() {
         // default values
         user = "root";
-        pass = "letmein";
+        pass = "root";
         host = "localhost";
         db   = "cryptdbtest";
         shadowdb_dir = std::string(getenv("EDBDIR")) + "/shadow";

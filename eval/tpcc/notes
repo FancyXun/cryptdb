@@ -5,7 +5,7 @@ A bunch of useful command lines
 
 1. To prepare:
 
-CREATE USER 'tpccuser' IDENTIFIED BY 'letmein';
+CREATE USER 'tpccuser' IDENTIFIED BY 'root';
 GRANT ALL PRIVILEGES ON *.* TO tpccuser;
 
 disable query cache
@@ -29,7 +29,7 @@ on different machines:
 on same machine:
 sudo killall mysql-proxy; sleep 2; ../../../edb/tests/test bench both 1 localhost 1 1 1 
 
-mysql -u root -pletmein -e "drop database cryptdbtest; create database cryptdbtest; drop database cryptdbtest_control; create database cryptdbtest_control"
+mysql -u root -proot -e "drop database cryptdbtest; create database cryptdbtest; drop database cryptdbtest_control; create database cryptdbtest_control"
 
 Note that to run transaction tput via benchmark:
  -- need noTerminals <= 10*noWarehouses
@@ -50,10 +50,10 @@ To translate plain queries:
 
 === To train from the shell (./tests/test shell) ====
 train 1 ../eval/tpcc/sqlTableCreates ../eval/tpcc/querypatterns_bench 1
-mysql -u root -pletmein -e "DROP DATABASE cryptdbtest; CREATE DATABASE cryptdbtest"
+mysql -u root -proot -e "DROP DATABASE cryptdbtest; CREATE DATABASE cryptdbtest"
 
 ==== To run a benchmark======
-java -cp  ../build/classes:../lib/edb-jdbc14-8_0_3_14.jar:../lib/ganymed-ssh2-build250.jar:../lib/hsqldb.jar:../lib/mysql-connector-java-5.1.10-bin.jar:../lib/ojdbc14-10.2.jar:../lib/postgresql-8.0.309.jdbc3.jar -Ddriver=com.mysql.jdbc.Driver -Dconn=jdbc:mysql://localhost:3306/tpccplain -Duser=tpccuser -Dpassword=letmein -Dnwarehouses=1 -Dnterminals=1 client.jTPCCHeadless
+java -cp  ../build/classes:../lib/edb-jdbc14-8_0_3_14.jar:../lib/ganymed-ssh2-build250.jar:../lib/hsqldb.jar:../lib/mysql-connector-java-5.1.10-bin.jar:../lib/ojdbc14-10.2.jar:../lib/postgresql-8.0.309.jdbc3.jar -Ddriver=com.mysql.jdbc.Driver -Dconn=jdbc:mysql://localhost:3306/tpccplain -Duser=tpccuser -Dpassword=root -Dnwarehouses=1 -Dnterminals=1 client.jTPCCHeadless
 
 ../../edb/tests/test trace encrypt_queries sqlTableCreates sqlIndexCreates querypatterns_bench plain_queries_w1_t10 pieces/enc_queries_w1_t10_  617397 300
 
@@ -66,8 +66,8 @@ python repeatexp.py ../dumps/plain_queries_w1_t10_notran ../dumps/up_enc_queries
 
 OR individual commands:
 
-mysql -u root -pletmein -e "drop database tpccenc"; mysql -u root -pletmein -e "create database tpccenc"; mysql -u root -pletmein tpccenc  < ../dumps/up_dump_enc_w1
-mysql -u root -pletmein -e "drop database tpccplain"; mysql -u root -pletmein -e "create database tpccplain"; mysql -u root -pletmein tpccplain < ../dumps/sch2_dump_plain_w1
+mysql -u root -proot -e "drop database tpccenc"; mysql -u root -proot -e "create database tpccenc"; mysql -u root -proot tpccenc  < ../dumps/up_dump_enc_w1
+mysql -u root -proot -e "drop database tpccplain"; mysql -u root -proot -e "create database tpccplain"; mysql -u root -proot tpccplain < ../dumps/sch2_dump_plain_w1
 
  ../../edb/tests/test -d tpccplain -v all trace eval ../dumps/plain_queries_w1_t10_notran 594805 10  1 1 5000
 ../../edb/tests/test -d tpccenc -v all trace eval ../dumps/up_enc_queries_w1_t10_notran 594805 10 1 1 5000

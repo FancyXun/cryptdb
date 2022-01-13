@@ -61,13 +61,13 @@ def myExec(*arg):
 for w in workers:
 
     if (not flag_ran) or needsreload:
-        cmd = "mysql -u root -pletmein -e 'drop database tpccplain; create database tpccplain;'"
+        cmd = "mysql -u root -proot -e 'drop database tpccplain; create database tpccplain;'"
         print cmd
         if os.system(cmd) < 0:
             print "error when dropping tpccplain"
             exit(-1)
         
-        cmd = "mysql -u root -pletmein tpccplain < ../dumps/sch2_dump_plain_w1"
+        cmd = "mysql -u root -proot tpccplain < ../dumps/sch2_dump_plain_w1"
         print cmd
         if os.system(cmd) < 0:
             print "error when loading plain"
@@ -78,13 +78,13 @@ for w in workers:
     plain_lat[w] = res[1]
     
     if (not flag_ran) or needsreload:
-        cmd = "mysql -u root -pletmein -e 'drop database tpccenc; create database tpccenc;'"
+        cmd = "mysql -u root -proot -e 'drop database tpccenc; create database tpccenc;'"
         print cmd
         if os.system(cmd) < 0:
             print "error when dropping tpccenc"
             exit(-1)
         
-        cmd = "mysql -u root -pletmein tpccenc < ../dumps/up_dump_enc_w1"
+        cmd = "mysql -u root -proot tpccenc < ../dumps/up_dump_enc_w1"
         print cmd
         if os.system(cmd) < 0:
             print "error when loading enc"

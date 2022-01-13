@@ -12,7 +12,7 @@ Single-principal demo:
 * in  proxy shell: 
 mysql-proxy --plugins=proxy --event-threads=4 --max-open-files=1024 --proxy-lua-script=$EDBDIR/../mysqlproxy/wrapper.lua --proxy-address=127.0.0.1:3307 --proxy-backend-addresses=localhost:3306
 * in plain shell: drop database cryptdbtest; create database cryptdbtest; use cryptdbtest;
-* in demo shell: mysql -u root -pletmein -h 127.0.0.1 -P 3307 cryptdbtest
+* in demo shell: mysql -u root -proot -h 127.0.0.1 -P 3307 cryptdbtest
 
 CREATE TABLE t1 (id integer, name text, salary integer);
 (plain: show tables; describe table0;)

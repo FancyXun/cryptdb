@@ -3,7 +3,7 @@
   "onion adjuster for database: burrows+one, created: 12/8/2013 3:30:10"
   (LET* ((DB "dbnew")
          (CONN
-          (CLSQL-SYS:CONNECT (LIST "127.0.0.1" DB "root" "letmein" 3307)
+          (CLSQL-SYS:CONNECT (LIST "127.0.0.1" DB "root" "root" 3307)
                              :DATABASE-TYPE :MYSQL :IF-EXISTS :NEW
                              :MAKE-DEFAULT NIL)))
     (UNWIND-PROTECT

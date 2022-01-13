@@ -37,7 +37,7 @@ Convention : When this document uses syntax like
         + the script will likely require root privileges in order to
           install dependencies and UDFs.
     * Username/Password
-        By default cryptdb uses 'root' for the username and 'letmein'
+        By default cryptdb uses 'root' for the username and 'root'
         for the password. You can change this by modifying the source.
             + Tests: test/test_utils.hh
             + Shell: main/cdb_test.cc
@@ -68,8 +68,8 @@ Convention : When this document uses syntax like
                          --proxy-address=127.0.0.1:3307                \
                          --proxy-backend-addresses=localhost:3306
 
-        B) Connect to CryptDB: (where root/letmein are username/password)
-           mysql -u root -pletmein -h 127.0.0.1 -P 3307
+        B) Connect to CryptDB: (where root/root are username/password)
+           mysql -u root -proot -h 127.0.0.1 -P 3307
         C) CREATE a database; USE it; Then type queries that will execute
            on encrypted data at the DB server!
 

@@ -28,7 +28,7 @@
 (defmacro db-op (c db &rest body)
   `(let* ((,(car db) ,(cdr db))
           (,c (clsql:connect
-                (list "127.0.0.1" ,(car db) "root" "letmein" 3307)
+                (list "127.0.0.1" ,(car db) "root" "root" 3307)
                 :database-type :mysql
                 :if-exists :new
                 :make-default nil)))

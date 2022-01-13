@@ -53,7 +53,7 @@ def run(arg, myStat):
     if len(arg) > 1 and arg[1] == "-h":
         print "syntax is: \n\n>python run_test.py username no_read_message no_read_post no_write_message no_write_post repeats html_filename cookie_filename readsfirst\n"
         print "username:"
-        print "\tthe name of the user who we should log in as\n\tthis user must have password \'letmein\'\n\tthis user must have at least one private message to him/her\n"
+        print "\tthe name of the user who we should log in as\n\tthis user must have password \'root\'\n\tthis user must have at least one private message to him/her\n"
         print "no_read_messages:"
         print "\tthe number of times the user will read a private message\n"
         print "no_read_post:"
@@ -90,7 +90,7 @@ def run(arg, myStat):
     login()
     if not login_good():
         myStat.query_bad(HTTP_LOGIN)
-        print "ERROR: could not login\n\tdoes this user have the password letmein?"
+        print "ERROR: could not login\n\tdoes this user have the password root?"
         return -1
     else:
         myStat.query_good(HTTP_LOGIN)
@@ -177,7 +177,7 @@ def run(arg, myStat):
 
 
 def login():
-    login = "wget"+flags+"--save-cookies="+cookie_file+" --post-data=\'username="+username+"&password=letmein&redirect=.%2Fucp.php%3Dlogin&sid=nonsense&redirect=index.php&login=Login\' \'http://"+ip+"/phpBB3/ucp.php?mode=login\' -O "+output_file
+    login = "wget"+flags+"--save-cookies="+cookie_file+" --post-data=\'username="+username+"&password=root&redirect=.%2Fucp.php%3Dlogin&sid=nonsense&redirect=index.php&login=Login\' \'http://"+ip+"/phpBB3/ucp.php?mode=login\' -O "+output_file
     os.system(login)
     return
 

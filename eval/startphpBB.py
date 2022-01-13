@@ -12,10 +12,10 @@ port = "3307"
 edbdir = "/home/cat/cryptdb/src/edb"
 
 def prepare():
-    db = "mysql -u root -pletmein -e 'DROP DATABASE cryptdb_phpbb; CREATE DATABASE cryptdb_phpbb'"
+    db = "mysql -u root -proot -e 'DROP DATABASE cryptdb_phpbb; CREATE DATABASE cryptdb_phpbb'"
     os.system(db)
     os.putenv("CRYPTDB_USER","root")
-    os.putenv("CRYPTDB_PASS","letmein")
+    os.putenv("CRYPTDB_PASS","root")
     os.putenv("CRYPTDB_DB","cryptdb_phpbb")
     #uncomment next two lines for verbosity
     #os.putenv("CRYPTDB_LOG","11111111111111111111111111111111")
@@ -41,7 +41,7 @@ def proxy():
         print("failed to fork")
     else:
         time.sleep(1)
-        db = "mysql -u root -pletmein -h " + ip + " -P " + port  +  " cryptdb_phpbb -e 'DROP FUNCTION IF EXISTS groupaccess; CREATE FUNCTION groupaccess (auth_option_id mediumint(8), auth_role_id mediumint(8)) RETURNS bool RETURN ((auth_option_id = 14) OR (auth_role_id IN (1, 2, 4, 6, 10, 11, 12, 13, 14, 15, 17, 22, 23, 24)));' "
+        db = "mysql -u root -proot -h " + ip + " -P " + port  +  " cryptdb_phpbb -e 'DROP FUNCTION IF EXISTS groupaccess; CREATE FUNCTION groupaccess (auth_option_id mediumint(8), auth_role_id mediumint(8)) RETURNS bool RETURN ((auth_option_id = 14) OR (auth_role_id IN (1, 2, 4, 6, 10, 11, 12, 13, 14, 15, 17, 22, 23, 24)));' "
         os.system(db)
         install_phpBB()
         print "Done! You can run tests now!"
@@ -53,7 +53,7 @@ def install_phpBB():
     url = "http://" + ip + "/phpBB3/"
     install_url = url + "install/index.php?mode=install&sub="
     br = mechanize.Browser()
-    post = "dbms=mysqli&dbhost=" + ip  +  "&dbport=" + port +  "&dbname=cryptdb_phpbb&dbuser=root&dbpasswd=letmein&table_prefix=phpbb_&admin_name=admin&admin_pass1=letmein&admin_pass2=letmein&board_email=cat_red@mit.edu&board_email2=cat_red@mit.edu"
+    post = "dbms=mysqli&dbhost=" + ip  +  "&dbport=" + port +  "&dbname=cryptdb_phpbb&dbuser=root&dbpasswd=root&table_prefix=phpbb_&admin_name=admin&admin_pass1=root&admin_pass2=root&board_email=cat_red@mit.edu&board_email2=cat_red@mit.edu"
     config = mechanize.urlopen(install_url+"config_file", data=post);
     br.set_response(config)
     post += "&email_enable=1&smtp_delivery=0&smtp_host=&smtp_auth=PLAIN&smtp_user=&smtp_pass=&cookie_secure=0&force_server_vars=0&server_protocol=http://&server_name=18.26.5.16&server_port=80&script_path=/phpBB"
@@ -71,7 +71,7 @@ def install_phpBB():
     br.open(url+"ucp.php?mode=login")
     br.select_form(nr=1)
     br["username"] = "admin"
-    br["password"] = "letmein"
+    br["password"] = "root"
     br.submit()
     print "to ACP..."
     #authenticate to go to ACP
@@ -79,7 +79,7 @@ def install_phpBB():
     br.select_form(nr=1)
     i = str(br.form).find("password")
     j = str(br.form).find("=)",i)
-    br[str(br.form)[i:j]] = "letmein"
+    br[str(br.form)[i:j]] = "root"
     br.submit()
     print "getting permissions page..."
     #navigate to group permissions

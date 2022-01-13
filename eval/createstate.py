@@ -8,8 +8,8 @@ import sys
 #
 #  Args: nr users outputfile
 
-header = "use phpbb; INSERT INTO activeusers VALUES ('admin', 'letmein'); \
-    INSERT INTO activeusers VALUES ('anonymous', 'letmein'); \
+header = "use phpbb; INSERT INTO activeusers VALUES ('admin', 'root'); \
+    INSERT INTO activeusers VALUES ('anonymous', 'root'); \
     DROP FUNCTION IF EXISTS groupaccess;\
     CREATE FUNCTION groupaccess (auth_option_id mediumint(8), auth_role_id mediumint(8)) RETURNS bool RETURN ((auth_option_id = 14) OR (auth_role_id IN (1, 2, 4, 6, 10, 11, 12, 13, 14, 15, 17, 22, 23, 24)));\n" 
 
@@ -26,7 +26,7 @@ user_group_header4 = "INSERT INTO phpbb_user_group VALUES (5, "
 user_group_footer = ", 0, 0);\n"
 
 active_users_header = "INSERT INTO pwdcryptdb__phpbb_users (username_clean, psswd) VALUES (";
-active_users_footer = ", 'letmein');\n";
+active_users_footer = ", 'root');\n";
 
 
 
@@ -149,7 +149,7 @@ def main(arg):
 
     f.close()
 
-    os.system("mysql -u root -pletmein -h 18.26.5.16 -P 3307 cryptdb_phpbb < "+filename)
+    os.system("mysql -u root -proot -h 18.26.5.16 -P 3307 cryptdb_phpbb < "+filename)
     
 main(sys.argv)
 

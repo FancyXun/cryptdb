@@ -2431,16 +2431,16 @@ static void runExp(EDBProxy * cl, int noWorkers, const TestConfig & tc, int logF
 
 static void
 loadDB(const TestConfig & tc, std::string dbname, std::string dumpname) {
-    std::string comm = "mysql -u root -pletmein -e 'drop database if exists " + dbname + "; ' ";
+    std::string comm = "mysql -u root -proot -e 'drop database if exists " + dbname + "; ' ";
     std::cerr << comm << "\n";
     assert_s(system(comm.c_str()) >= 0, "cannot drop db with if exists");
 
-    comm = "mysql -u root -pletmein -e 'create database " + dbname + ";' ";
+    comm = "mysql -u root -proot -e 'create database " + dbname + ";' ";
     std::cerr << comm << "\n";
     assert_s(system(comm.c_str()) >= 0, "cannot create db");
 
     if (dumpname != "") {
-        comm = "mysql -u root -pletmein " + dbname + " < " + tc.edbdir  + "/../eval/dumps/" + dumpname + "; ";
+        comm = "mysql -u root -proot " + dbname + " < " + tc.edbdir  + "/../eval/dumps/" + dumpname + "; ";
         std::cerr << comm << "\n";
         assert_s(system(comm.c_str()) >= 0, "cannotload dump");
     }
@@ -2694,8 +2694,8 @@ testEncTables(const TestConfig & tc, int argc, char ** argv) {
 
     EDBProxy * cl;
 
-    assert_s(system("mysql -u root -pletmein -e 'drop database if exists tpccenc;' ") >= 0, "cannot drop tpccenc with if exists");
-    assert_s(system("mysql -u root -pletmein -e 'create database tpccenc;' ") >= 0, "cannot create tpccenc");
+    assert_s(system("mysql -u root -proot -e 'drop database if exists tpccenc;' ") >= 0, "cannot drop tpccenc with if exists");
+    assert_s(system("mysql -u root -proot -e 'create database tpccenc;' ") >= 0, "cannot create tpccenc");
 
     cl = new EDBProxy(tc.host, tc.user, tc.pass, "tpccenc", tc.port);
     cl->setMasterKey(masterKey);
@@ -2708,7 +2708,7 @@ testEncTables(const TestConfig & tc, int argc, char ** argv) {
 
     cerr << "load dump\n";
 
-    assert_s(system("mysql -u root -pletmein tpccenc < ../eval/dumps/up_dump_enc_w1") >=0, "cannot load dump");
+    assert_s(system("mysql -u root -proot tpccenc < ../eval/dumps/up_dump_enc_w1") >=0, "cannot load dump");
 
     Connect * conn = new Connect(tc.host, tc.user, tc.pass, "tpccenc", tc.port);
 
@@ -2751,7 +2751,7 @@ testBench(const TestConfig & tc, int argc, char ** argv)
 
         loadDB(tc, "cryptdbtest", "");
 
-        std::string comm = "mysql -u root -pletmein cryptdbtest < ../../tpcc/orig_table_creates ;";
+        std::string comm = "mysql -u root -proot cryptdbtest < ../../tpcc/orig_table_creates ;";
         std::cerr << comm << "\n";
         assert_s(system(comm.c_str()) >= 0, "cannot create tables");
 
@@ -2775,7 +2775,7 @@ testBench(const TestConfig & tc, int argc, char ** argv)
                    "../lib/hsqldb.jar:../lib/mysql-connector-java-5.1.10-bin.jar:../lib/ojdbc14-10.2.jar:../lib/postgresql-8.0.309.jdbc3.jar " +
                    "-Ddriver=com.mysql.jdbc.Driver " +
                    "-Dconn=jdbc:mysql://localhost:5133/cryptdbtest " +
-                   "-Duser=root -Dpassword=letmein LoadData.LoadData numWarehouses " + numWarehouses;
+                   "-Duser=root -Dpassword=root LoadData.LoadData numWarehouses " + numWarehouses;
         std::cerr << "\n" << comm << "\n\n";
         assert_s(system(comm.c_str())>=0, "problem running benchmark");
 
@@ -2860,7 +2860,7 @@ testBench(const TestConfig & tc, int argc, char ** argv)
                    "../lib/hsqldb.jar:../lib/mysql-connector-java-5.1.10-bin.jar:../lib/ojdbc14-10.2.jar:../lib/postgresql-8.0.309.jdbc3.jar " +
                    "-Ddriver=com.mysql.jdbc.Driver " +
                    "-Dconn=jdbc:mysql://"+proxyhost+":"+StringFromVal(baseport)+"/tpccenc " +
-                   "-Duser=root -Dpassword=letmein " +
+                   "-Duser=root -Dpassword=root " +
                    "-Dnwarehouses="+noWarehouses+" -Dnterminals=" + StringFromVal(noWorkers)+
                    " -DtimeLimit="+timeLimit+" client.jTPCCHeadless";
             std::cerr << "\n" << comm << "\n\n";
@@ -2877,7 +2877,7 @@ testBench(const TestConfig & tc, int argc, char ** argv)
                     "../lib/hsqldb.jar:../lib/mysql-connector-java-5.1.10-bin.jar:../lib/ojdbc14-10.2.jar:../lib/postgresql-8.0.309.jdbc3.jar "
                     "-Ddriver=com.mysql.jdbc.Driver "
                     "-Dconn=jdbc:mysql://"+serverhost+":3306/tpccplain "
-                    "-Duser=root -Dpassword=letmein "
+                    "-Duser=root -Dpassword=root "
                     "-Dnwarehouses="+noWarehouses+" -Dnterminals=" + StringFromVal(noWorkers) +
                     " -DtimeLimit="+timeLimit+" client.jTPCCHeadless").c_str())>=0,
                     "problem running benchmark");
