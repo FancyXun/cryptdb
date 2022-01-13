@@ -1197,7 +1197,7 @@ class install_install extends module
 
         $db->sql_query("COMMIT ANNOTATIONS");
 
-        $db->sql_query("INSERT INTO pwdcryptdb__phpbb_users (username_clean, psswd) VALUES ('admin', 'letmein')");
+        $db->sql_query("INSERT INTO pwdcryptdb__phpbb_users (username_clean, psswd) VALUES ('admin', 'root')");
         $db->sql_query("INSERT INTO pwdcryptdb__phpbb_users (username_clean, psswd) VALUES ('annonymous', '')");
 
 		// Ok tables have been built, let's fill in the basic information

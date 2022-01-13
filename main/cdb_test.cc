@@ -136,7 +136,7 @@ main(int ac, char **av)
     read_history(user_histfile().c_str());
     atexit(__write_history);
 
-    ConnectionInfo ci("localhost", "root", "letmein");
+    ConnectionInfo ci("localhost", "root", "root");
     const std::string master_key = "2392834";
     SharedProxyState shared_ps(ci, av[1], master_key, determineSecurityRating());
     ProxyState ps(shared_ps);

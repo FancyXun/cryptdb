@@ -66,10 +66,10 @@ SET NAMES 'utf8';
 ; CREATE TABLE phpbb_warnings (  	warning_id mediumint(8) UNSIGNED NOT NULL auto_increment, 	user_id mediumint(8) UNSIGNED DEFAULT '0' NOT NULL, 	post_id mediumint(8) UNSIGNED DEFAULT '0' NOT NULL, 	log_id mediumint(8) UNSIGNED DEFAULT '0' NOT NULL, 	warning_time int(11) UNSIGNED DEFAULT '0' NOT NULL, 	PRIMARY KEY (warning_id) ) CHARACTER SET `utf8` COLLATE `utf8_bin`
 ; CREATE TABLE phpbb_words (  	word_id mediumint(8) UNSIGNED NOT NULL auto_increment, 	word varchar(255) DEFAULT '' NOT NULL, 	replacement varchar(255) DEFAULT '' NOT NULL, 	PRIMARY KEY (word_id) ) CHARACTER SET `utf8` COLLATE `utf8_bin`
 ; CREATE TABLE phpbb_zebra (  	user_id mediumint(8) UNSIGNED DEFAULT '0' NOT NULL, 	zebra_id mediumint(8) UNSIGNED DEFAULT '0' NOT NULL, 	friend tinyint(1) UNSIGNED DEFAULT '0' NOT NULL, 	foe tinyint(1) UNSIGNED DEFAULT '0' NOT NULL, 	PRIMARY KEY (user_id, zebra_id) ) CHARACTER SET `utf8` COLLATE `utf8_bin`
-; INSERT INTO activeusers VALUES ('admin', 'letmein');
-; INSERT INTO activeusers VALUES ('watashi', 'letmein');
-; INSERT INTO activeusers VALUES ('anonymous', 'letmein');
-; INSERT INTO activeusers VALUES ('atashi', 'letmein');
+; INSERT INTO activeusers VALUES ('admin', 'root');
+; INSERT INTO activeusers VALUES ('watashi', 'root');
+; INSERT INTO activeusers VALUES ('anonymous', 'root');
+; INSERT INTO activeusers VALUES ('atashi', 'root');
 ; INSERT INTO phpbb_config (config_name, config_value) VALUES ('active_sessions', '0') 
 ; INSERT INTO phpbb_config (config_name, config_value) VALUES ('allow_attachments', '1') 
 ; INSERT INTO phpbb_config (config_name, config_value) VALUES ('allow_autologin', '1') 

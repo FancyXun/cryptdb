@@ -24,8 +24,8 @@ function main()
     os.execute("mysqld --bind-address=127.0.0.1 &")
     os.execute("sleep 3")
 
-    os.execute("mysql -uroot -pletmein -e \"drop database if exists lua_test\"")
-    os.execute("mysql -uroot -pletmein -e \"create database if not exists lua_test\"")
+    os.execute("mysql -uroot -proot -e \"drop database if exists lua_test\"")
+    os.execute("mysql -uroot -proot -e \"create database if not exists lua_test\"")
 
     total_integrations      = 0
     passed_integrations     = 0
@@ -60,7 +60,7 @@ function main()
                 " Integration Tests\n" ..
           "################################\n")
 
-    os.execute("mysql -uroot -pletmein -e \"drop database lua_test\"")
+    os.execute("mysql -uroot -proot -e \"drop database lua_test\"")
     os.execute("pkill -9 mysqld")
     os.execute("service mysql start")
 
@@ -80,11 +80,11 @@ end
 -- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 function test_normalQueryExecution()
-    os.execute("mysql -uroot -pletmein -e \"create table lua_test.t (x integer, y integer)\"")
-    os.execute("mysql -uroot -pletmein -e \"insert into lua_test.t VALUES (1, 2), (3, 4), (4, 3)\"")
+    os.execute("mysql -uroot -proot -e \"create table lua_test.t (x integer, y integer)\"")
+    os.execute("mysql -uroot -proot -e \"insert into lua_test.t VALUES (1, 2), (3, 4), (4, 3)\"")
 
     status, lua_query =
-        ThreadedQuery.start("127.0.0.1", "root", "letmein", 3306, 2)
+        ThreadedQuery.start("127.0.0.1", "root", "root", 3306, 2)
     if not (status and lua_query) then
         return false
     end
@@ -152,13 +152,13 @@ function test_normalQueryExecution()
 end
 
 function test_failedQueryExecution()
-    os.execute("mysql -uroot -pletmein -e \"create table lua_test.t2 (x integer, y integer)\"")
-    os.execute("mysql -uroot -pletmein -e \"insert into lua_test.t2 VALUES (1, 2), (3, 4), (4, 3)\"")
+    os.execute("mysql -uroot -proot -e \"create table lua_test.t2 (x integer, y integer)\"")
+    os.execute("mysql -uroot -proot -e \"insert into lua_test.t2 VALUES (1, 2), (3, 4), (4, 3)\"")
 
     os.execute("pkill -9 mysqld")
     -- should fail to connect
     status, lua_query =
-        ThreadedQuery.start("127.0.0.1", "root", "letmein", 3306, 2)
+        ThreadedQuery.start("127.0.0.1", "root", "root", 3306, 2)
     if not (status and lua_query) then
         return false
     end
@@ -204,11 +204,11 @@ function test_failedQueryExecution()
 end
 
 function test_doubleQuery()
-    os.execute("mysql -uroot -pletmein -e \"create table lua_test.t3 (x integer, y integer)\"")
-    os.execute("mysql -uroot -pletmein -e \"insert into lua_test.t3 VALUES (2, 12), (40, 15), (5, 38)\"")
+    os.execute("mysql -uroot -proot -e \"create table lua_test.t3 (x integer, y integer)\"")
+    os.execute("mysql -uroot -proot -e \"insert into lua_test.t3 VALUES (2, 12), (40, 15), (5, 38)\"")
 
     status, lua_query =
-        ThreadedQuery.start("127.0.0.1", "root", "letmein", 3306, 2)
+        ThreadedQuery.start("127.0.0.1", "root", "root", 3306, 2)
     if not (status and lua_query) then
         return false
     end

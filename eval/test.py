@@ -13,7 +13,7 @@ if len(arg) != 3:
 
 port = arg[1]
 tracefile = arg[2]
-query = "mysql -u root -pletmein -h 127.0.0.1 -P"+ port + " < " 
+query = "mysql -u root -proot -h 127.0.0.1 -P"+ port + " < " 
 os.system(query+tracefile)
 
 print "start timer"

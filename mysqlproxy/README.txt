@@ -19,5 +19,5 @@ to specify username / password / shadow dir for proxy, run before starting proxy
 
 to send a single command to mysql:
 
-  % mysql -u root -pletmein -h 127.0.0.1 -P 3307 -e 'command'
+  % mysql -u root -proot -h 127.0.0.1 -P 3307 -e 'command'
 

@@ -35,7 +35,7 @@ function connect_server()
 
     -- initialize and start pre-emptive thread
     status, tquery =
-        ThreadedQuery.start("127.0.0.1", "root", "letmein", 3307, 5)
+        ThreadedQuery.start("127.0.0.1", "root", "root", 3307, 5)
     if nil == status then
         tquery = nil
     end

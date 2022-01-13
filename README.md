@@ -11,7 +11,7 @@ gdb --args bins/proxy-bin/bin/mysql-proxy  --plugins=proxy --event-threads=4 --m
 ```
 
 ```shell script
-mysql -u root -pletmein -h 127.0.0.1 -P 3307
+mysql -u root -proot -h 127.0.0.1 -P 3307
 ```
 
 ```shell script

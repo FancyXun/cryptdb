@@ -34,7 +34,7 @@
                                            "/newtesting/kz_tests.sexpr"))
 (defparameter +default-ip+               "127.0.0.1")
 (defparameter +default-username+         "root")
-(defparameter +default-password+         "letmein")
+(defparameter +default-password+         "root")
 (defparameter +default-database+         "cryptdbtest")
 (defparameter +default-control-database+ "cryptdbtest_control")
 

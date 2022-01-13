@@ -10,7 +10,7 @@
 // ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 const char *const real_host         = "127.0.0.1";
 const char *const real_user         = "root";
-const char *const real_passwd       = "letmein";
+const char *const real_passwd       = "root";
 const unsigned int real_port        = 3306;
 
 const char *const fast_bad_host     = "127.0.0.1";
