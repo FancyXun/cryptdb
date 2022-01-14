@@ -1,5 +1,28 @@
 # cryptdb
 
+## install
+
+ubuntu 14+
+
+```shell script
+git clone git@github.com:FancyXun/cryptdb.git
+
+```
+```shell script
+cd cryptdb
+sh install_ruby.sh
+scripts/install.rb .
+```
+## start db
+```shell script
+bins/proxy-bin/bin/mysql-proxy  --plugins=proxy --event-threads=4 --max-open-files=1024 --proxy-address=127.0.0.1:3307 --proxy-backend-addresses=127.0.0.1:3306 --proxy-lua-script=$EDBDIR/mysqlproxy/wrapper.lua
+```
+## test db
+```shell script
+mysql -u root -proot -h 127.0.0.1 -P 3307
+```
+
+## debug
 ```shell script
 
 gdb --args bins/proxy-bin/bin/mysql-proxy  --plugins=proxy --event-threads=4 --max-open-files=1024 --proxy-address=127.0.0.1:3307 --proxy-backend-addresses=127.0.0.1:3306 --proxy-lua-script=$EDBDIR/mysqlproxy/wrapper.lua
