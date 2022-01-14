@@ -746,7 +746,12 @@ deltaOutputBeforeQuery(const std::unique_ptr<Connect> &e_conn,
     char buf[original_query.size() + 1];
     memcpy(buf, toLowerCase(original_query).c_str(), original_query.size());
     std::string query_str(buf);
-    if (query_str.find("create table") != std::string::npos) {
+    std::unique_ptr<query_parse> p;
+
+    p = std::unique_ptr<query_parse>(new query_parse(original_db, original_query));
+    LEX *const lex = p->lex();
+
+    if (lex->sql_command == SQLCOM_CREATE_TABLE) {
         std::size_t start = query_str.find_first_of("(");
         std::size_t end = query_str.find_last_of(")");
         std::string items= query_str.substr(start+1, end-start-1);
