@@ -47,6 +47,18 @@ MetaData::Table::remoteQueryCompletion()
 }
 
 std::string
+MetaData::Table::information_schema_tables()
+{
+    return DB::embeddedDB() + "." + "INFORMATION_SCHEMA_TABLES";
+}
+
+std::string
+MetaData::Table::information_schema_columns()
+{
+    return DB::embeddedDB() + "." + "INFORMATION_SCHEMA_COLUMNS";
+}
+
+std::string
 MetaData::Proc::activeTransactionP()
 {
     return DB::remoteDB() + "." + Internal::getPrefix() + "activeTransactionP";
@@ -164,6 +176,23 @@ MetaData::initialize(const std::unique_ptr<Connect> &conn,
         "    id SERIAL PRIMARY KEY)";
         // " ENGINE=InnoDB;";
     RETURN_FALSE_IF_FALSE(conn->execute(create_remote_completion));
+
+    const std::string create_information_schema_tables =
+        " CREATE TABLE IF NOT EXISTS " + Table::information_schema_tables() +
+        "   (TABLE_SCHEMA VARCHAR(64) NOT NULL,"
+        "    TABLE_NAME VARCHAR(64) NOT NULL)";
+        // " ENGINE=InnoDB;";
+    RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_tables));
+
+    const std::string create_information_schema_columns =
+        " CREATE TABLE IF NOT EXISTS " + Table::information_schema_columns() +
+        "   (TABLE_SCHEMA VARCHAR(64) NOT NULL,"
+        "    TABLE_NAME VARCHAR(64) NOT NULL,"
+        "    COLUMN_NAME VARCHAR(64) NOT NULL,"
+        "    DATA_TYPE VARCHAR(64) NOT NULL,"
+        "    ORDINAL_POSITION BIGINT NOT NULL)";
+        // " ENGINE=InnoDB;";
+    RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_columns));
 
     initialized = true;
     return true;

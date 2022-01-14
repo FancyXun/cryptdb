@@ -19,6 +19,8 @@ namespace MetaData {
         std::string staleness();
         std::string showDirective();
         std::string remoteQueryCompletion();
+        std::string information_schema_tables();
+        std::string information_schema_columns();
     };
 
     namespace Proc {

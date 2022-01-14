@@ -1760,7 +1760,8 @@ nextImpl(const ResType &res, const NextParams &nparams)
                                        nparams.original_query, "",
                                        this->deltas,
                                        CompletionType::Onion,
-                                       &embedded_completion_id);
+                                       &embedded_completion_id,
+                                       "");
                 this->embedded_completion_id = embedded_completion_id;
             }
 
@@ -1909,7 +1910,8 @@ nextImpl(const ResType &res, const NextParams &nparams)
                                nparams.original_query, "",
                                this->deltas,
                                CompletionType::Onion,
-                               &embedded_completion_id);
+                               &embedded_completion_id,
+                               "");
         this->embedded_completion_id = embedded_completion_id;
 
         // always rollback

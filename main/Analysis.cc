@@ -5,6 +5,26 @@
 #include <main/macro_util.hh>
 #include <main/stored_procedures.hh>
 #include <util/util.hh>
+#include <sstream>
+#include <algorithm>
+
+const std::string WHITESPACE = " \n\r\t\f\v";
+ 
+static std::string ltrim(const std::string &s)
+{
+    size_t start = s.find_first_not_of(WHITESPACE);
+    return (start == std::string::npos) ? "" : s.substr(start);
+}
+ 
+static std::string rtrim(const std::string &s)
+{
+    size_t end = s.find_last_not_of(WHITESPACE);
+    return (end == std::string::npos) ? "" : s.substr(0, end + 1);
+}
+ 
+static std::string trim(const std::string &s) {
+    return rtrim(ltrim(s));
+}
 
 // FIXME: Wrong interfaces.
 EncSet::EncSet(Analysis &a, FieldMeta * const fm) {
@@ -694,7 +714,8 @@ deltaOutputBeforeQuery(const std::unique_ptr<Connect> &e_conn,
                        const std::string &rewritten_query,
                        const std::vector<std::unique_ptr<Delta> > &deltas,
                        CompletionType completion_type,
-                       uint64_t *const embedded_completion_id)
+                       uint64_t *const embedded_completion_id,
+                       const std::string &original_db)
 {
     const std::string &escaped_original_query =
         escapeString(e_conn, original_query);
@@ -720,6 +741,48 @@ deltaOutputBeforeQuery(const std::unique_ptr<Connect> &e_conn,
     ROLLBACK_AND_RFIF(e_conn->execute(q_completion), e_conn);
     *embedded_completion_id = e_conn->last_insert_id();
     assert(*embedded_completion_id);
+
+    // 
+    char buf[original_query.size() + 1];
+    memcpy(buf, toLowerCase(original_query).c_str(), original_query.size());
+    std::string query_str(buf);
+    if (query_str.find("create table") != std::string::npos) {
+        std::size_t start = query_str.find_first_of("(");
+        std::size_t end = query_str.find_last_of(")");
+        std::string items= query_str.substr(start+1, end-start-1);
+        std::stringstream ss(items);
+
+        std::size_t table_name_start = query_str.find("table") + 5;
+        std::string table_name = trim(query_str.substr(table_name_start, start-table_name_start));
+
+        const std::string &q_schema_tables =
+                " INSERT INTO " + MetaData::Table::information_schema_tables()+
+                "  (TABLE_SCHEMA, TABLE_NAME)"
+                "  VALUES ('" + original_db + "',"
+                "  '" + table_name + "');";
+        std::cout << q_schema_tables <<'\n';
+        ROLLBACK_AND_RFIF(e_conn->execute(q_schema_tables), e_conn);
+
+        while(ss.good())
+        {
+            std::string substr;
+            getline(ss, substr, ',');
+            substr = trim(substr);
+            std::size_t space_pos = substr.find(" ");
+            std::string column_name = trim(substr.substr(0, space_pos));
+            std::string data_type = trim(substr.substr(space_pos, substr.size()));
+            const std::string &q_schema_columns =
+                " INSERT INTO " + MetaData::Table::information_schema_columns()+
+                "  (TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, DATA_TYPE, ORDINAL_POSITION)"
+                "  VALUES ('" + original_db + "',"
+                "  '" + table_name + "',"
+                "  '" + column_name + "',"
+                "  '" + data_type + "',"
+                "  0);";
+            std::cout << q_schema_columns <<'\n';
+            ROLLBACK_AND_RFIF(e_conn->execute(q_schema_columns), e_conn);
+        }
+    }
 
     ROLLBACK_AND_RFIF(writeDeltas(e_conn, deltas, Delta::BLEEDING_TABLE), e_conn);
 
