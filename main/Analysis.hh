@@ -226,7 +226,8 @@ deltaOutputBeforeQuery(const std::unique_ptr<Connect> &e_conn,
                        const std::string &rewritten_query,
                        const std::vector<std::unique_ptr<Delta> > &deltas,
                        CompletionType completion_type,
-                       uint64_t *const embedded_completion_id);
+                       uint64_t *const embedded_completion_id,
+                       const std::string &original_db);
 
 bool
 deltaOutputAfterQuery(const std::unique_ptr<Connect> &e_conn,

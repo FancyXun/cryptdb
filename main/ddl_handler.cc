@@ -375,7 +375,8 @@ nextImpl(const ResType &res, const NextParams &nparams)
                                            nparams.original_query,
                                            this->new_query, this->deltas,
                                            CompletionType::DDL,
-                                           &embedded_completion_id),
+                                           &embedded_completion_id,
+                                           nparams.default_db),
                     "deltaOutputBeforeQuery failed for DDL");
                 this->embedded_completion_id = embedded_completion_id;
             }

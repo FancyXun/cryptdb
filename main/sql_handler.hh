@@ -96,6 +96,15 @@ public:
         nextImpl(const ResType &res, const NextParams &nparams);
 };
 
+class LocalExecutor : public AbstractQueryExecutor {
+public:
+    LocalExecutor() {}
+    ~LocalExecutor() {}
+
+    std::pair<ResultType, AbstractAnything *>
+        nextImpl(const ResType &res, const NextParams &nparams);
+};
+
 class NoOpExecutor : public AbstractQueryExecutor {
 public:
     NoOpExecutor() {}
