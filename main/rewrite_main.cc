@@ -1464,13 +1464,12 @@ Rewriter::dispatchOnLex(Analysis &a, const std::string &query)
     if (noRewrite(*lex)) {
         return new SimpleExecutor();
     } else if (dml_dispatcher->canDo(lex)) {
-        // HACK: We don't want to process INFORMATION_SCHEMA queries
         if (SQLCOM_SELECT == lex->sql_command &&
             lex->select_lex.table_list.first) {
 
             const std::string &db = lex->select_lex.table_list.first->db;
             if (equalsIgnoreCase("INFORMATION_SCHEMA", db)) {
-                return new SimpleExecutor();
+                return new LocalExecutor();
             }
         }
 

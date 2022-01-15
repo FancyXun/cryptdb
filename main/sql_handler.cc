@@ -50,6 +50,31 @@ nextImpl(const ResType &res, const NextParams &nparams)
     assert(false);
 }
 
+
+std::pair<AbstractQueryExecutor::ResultType, AbstractAnything *> LocalExecutor::
+nextImpl(const ResType &res, const NextParams &nparams)
+{
+    reenter(this->corot) {
+
+        yield {
+            std::unique_ptr<DBResult> db_res;
+            std::string query = nparams.original_query;
+            std::string search = "INFORMATION_SCHEMA.";
+            std::string replace = "embedded_db.INFORMATION_SCHEMA_";
+            size_t pos = 0;
+            while((pos = query.find(search, pos)) != std::string::npos) 
+            {
+                query.replace(pos, search.length(), replace);
+                pos += replace.length();
+            }
+            nparams.ps.getEConn()->execute(query, &db_res);
+            return CR_RESULTS(db_res->unpack());
+        }
+    }
+
+    assert(false);
+}
+
 std::pair<AbstractQueryExecutor::ResultType, AbstractAnything *> NoOpExecutor::
 nextImpl(const ResType &res, const NextParams &nparams)
 {
