@@ -297,7 +297,7 @@ MetaData::initialize(const std::unique_ptr<Connect> &conn,
         "CREATE TABLE IF NOT EXISTS " + Table::information_schema_engines() +
         "  (ENGINE varchar(64) NOT NULL DEFAULT '',"
         "   SUPPORT varchar(8) NOT NULL DEFAULT '',"
-        "   COMMENT varchar(80) NOT NULL DEFAULT ''"
+        "   COMMENT varchar(80) NOT NULL DEFAULT '',"
         "   TRANSACTIONS varchar(3) DEFAULT NULL,"
         "   XA varchar(3) DEFAULT NULL,"
         "   SAVEPOINTS varchar(3) DEFAULT NULL)";
