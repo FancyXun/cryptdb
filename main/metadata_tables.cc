@@ -76,6 +76,12 @@ MetaData::Table::information_schema_schemata()
     return DB::information_schema() + "." + "SCHEMATA";
 }
 
+std::string 
+MetaData::Table::information_schema_engines()
+{
+    return DB::information_schema() + "." + "ENGINES";
+}
+
 std::string
 MetaData::Proc::activeTransactionP()
 {
@@ -286,6 +292,16 @@ MetaData::initialize(const std::unique_ptr<Connect> &conn,
         "   DEFAULT_COLLATION_NAME varchar(32) NOT NULL DEFAULT '',"
         "   SQL_PATH varchar(512) DEFAULT NULL)";
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_schemata));
+
+    const std::string create_information_schema_engines =
+        "CREATE TABLE IF NOT EXISTS " + Table::information_schema_engines() +
+        "  (ENGINE varchar(64) NOT NULL DEFAULT '',"
+        "   SUPPORT varchar(8) NOT NULL DEFAULT '',"
+        "   COMMENT varchar(80) NOT NULL DEFAULT ''"
+        "   TRANSACTIONS varchar(3) DEFAULT NULL,"
+        "   XA varchar(3) DEFAULT NULL,"
+        "   SAVEPOINTS varchar(3) DEFAULT NULL)";
+    RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_engines));
 
     initialized = true;
     return true;
