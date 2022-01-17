@@ -49,13 +49,31 @@ MetaData::Table::remoteQueryCompletion()
 std::string
 MetaData::Table::information_schema_tables()
 {
-    return DB::embeddedDB() + "." + "INFORMATION_SCHEMA_TABLES";
+    return DB::information_schema() + "." + "TABLES";
 }
 
 std::string
 MetaData::Table::information_schema_columns()
 {
-    return DB::embeddedDB() + "." + "INFORMATION_SCHEMA_COLUMNS";
+    return DB::information_schema() + "." + "COLUMNS";
+}
+
+std::string 
+MetaData::Table::information_schema_routines()
+{
+    return DB::information_schema() + "." + "ROUTINES";
+}
+
+std::string 
+MetaData::Table::information_schema_parameters()
+{
+    return DB::information_schema() + "." + "PARAMETERS";
+}
+
+std::string 
+MetaData::Table::information_schema_schemata()
+{
+    return DB::information_schema() + "." + "SCHEMATA";
 }
 
 std::string
@@ -68,6 +86,14 @@ std::string
 MetaData::DB::embeddedDB()
 {
     static const std::string name = "embedded_db";
+    return name;
+}
+
+std::string
+MetaData::DB::information_schema()
+{
+    // todo: replace information_schema_meta to information_schema
+    static const std::string name = "information_schema_meta";
     return name;
 }
 
@@ -177,6 +203,11 @@ MetaData::initialize(const std::unique_ptr<Connect> &conn,
         // " ENGINE=InnoDB;";
     RETURN_FALSE_IF_FALSE(conn->execute(create_remote_completion));
 
+    // information_schema database.
+    const std::string create_information_schema =
+        " CREATE DATABASE IF NOT EXISTS " + DB::information_schema() + ";";
+    RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema));
+
     const std::string create_information_schema_tables =
         " CREATE TABLE IF NOT EXISTS " + Table::information_schema_tables() +
         "   (TABLE_SCHEMA VARCHAR(64) NOT NULL,"
@@ -193,6 +224,68 @@ MetaData::initialize(const std::unique_ptr<Connect> &conn,
         "    ORDINAL_POSITION BIGINT NOT NULL)";
         // " ENGINE=InnoDB;";
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_columns));
+
+    const std::string create_information_schema_routines = 
+        "CREATE TABLE IF NOT EXISTS " + Table::information_schema_routines() +
+        "  (SPECIFIC_NAME varchar(64) NOT NULL DEFAULT '',"
+        "   ROUTINE_CATALOG varchar(512) NOT NULL DEFAULT '',"
+        "   ROUTINE_SCHEMA varchar(64) NOT NULL DEFAULT '',"
+        "   ROUTINE_NAME varchar(64) NOT NULL DEFAULT '',"
+        "   ROUTINE_TYPE varchar(9) NOT NULL DEFAULT '',"
+        "   DATA_TYPE varchar(64) NOT NULL DEFAULT '',"
+        "   CHARACTER_MAXIMUM_LENGTH int(21) DEFAULT NULL,"
+        "   CHARACTER_OCTET_LENGTH int(21) DEFAULT NULL,"
+        "   NUMERIC_PRECISION int(21) DEFAULT NULL,"
+        "   NUMERIC_SCALE int(21) DEFAULT NULL,"
+        "   CHARACTER_SET_NAME varchar(64) DEFAULT NULL,"
+        "   COLLATION_NAME varchar(64) DEFAULT NULL,"
+        "   DTD_IDENTIFIER longtext,"
+        "   ROUTINE_BODY varchar(8) NOT NULL DEFAULT '',"
+        "   ROUTINE_DEFINITION longtext,"
+        "   EXTERNAL_NAME varchar(64) DEFAULT NULL,"
+        "   EXTERNAL_LANGUAGE varchar(64) DEFAULT NULL,"
+        "   PARAMETER_STYLE varchar(8) NOT NULL DEFAULT '',"
+        "   IS_DETERMINISTIC varchar(3) NOT NULL DEFAULT '',"
+        "   SQL_DATA_ACCESS varchar(64) NOT NULL DEFAULT '',"
+        "   SQL_PATH varchar(64) DEFAULT NULL,"
+        "   SECURITY_TYPE varchar(7) NOT NULL DEFAULT '',"
+        "   CREATED datetime NOT NULL DEFAULT '0000-00-00 00:00:00',"
+        "   LAST_ALTERED datetime NOT NULL DEFAULT '0000-00-00 00:00:00',"
+        "   SQL_MODE varchar(8192) NOT NULL DEFAULT '',"
+        "   ROUTINE_COMMENT longtext NOT NULL,"
+        "   DEFINER varchar(77) NOT NULL DEFAULT '',"
+        "   CHARACTER_SET_CLIENT varchar(32) NOT NULL DEFAULT '',"
+        "   COLLATION_CONNECTION varchar(32) NOT NULL DEFAULT '',"
+        "   DATABASE_COLLATION varchar(32) NOT NULL DEFAULT '')";
+    RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_routines));
+
+    const std::string create_information_schema_parameters = 
+        "CREATE TABLE IF NOT EXISTS " + Table::information_schema_parameters() +
+        "  (SPECIFIC_CATALOG varchar(512) NOT NULL DEFAULT '',"
+        "   SPECIFIC_SCHEMA varchar(64) NOT NULL DEFAULT '',"
+        "   SPECIFIC_NAME varchar(64) NOT NULL DEFAULT '',"
+        "   ORDINAL_POSITION int(21) NOT NULL DEFAULT '0',"
+        "   PARAMETER_MODE varchar(5) DEFAULT NULL,"
+        "   PARAMETER_NAME varchar(64) DEFAULT NULL,"
+        "   DATA_TYPE varchar(64) NOT NULL DEFAULT '',"
+        "   CHARACTER_MAXIMUM_LENGTH int(21) DEFAULT NULL,"
+        "   CHARACTER_OCTET_LENGTH int(21) DEFAULT NULL,"
+        "   NUMERIC_PRECISION int(21) DEFAULT NULL,"
+        "   NUMERIC_SCALE int(21) DEFAULT NULL,"
+        "   CHARACTER_SET_NAME varchar(64) DEFAULT NULL,"
+        "   COLLATION_NAME varchar(64) DEFAULT NULL,"
+        "   DTD_IDENTIFIER longtext NOT NULL,"
+        "   ROUTINE_TYPE varchar(9) NOT NULL DEFAULT '')";
+    RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_parameters));
+
+    const std::string create_information_schema_schemata =
+        "CREATE TABLE IF NOT EXISTS " + Table::information_schema_schemata() +
+        "  (CATALOG_NAME varchar(512) NOT NULL DEFAULT '',"
+        "   SCHEMA_NAME varchar(64) NOT NULL DEFAULT '',"
+        "   DEFAULT_CHARACTER_SET_NAME varchar(32) NOT NULL DEFAULT '',"
+        "   DEFAULT_COLLATION_NAME varchar(32) NOT NULL DEFAULT '',"
+        "   SQL_PATH varchar(512) DEFAULT NULL)";
+    RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_schemata));
 
     initialized = true;
     return true;
