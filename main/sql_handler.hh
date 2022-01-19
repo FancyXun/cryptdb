@@ -23,6 +23,8 @@
     std::make_pair(AbstractQueryExecutor::ResultType::RESULTS,              \
                    newAnything(value))
 
+static std::string schema_names[] = {"INFORMATION_SCHEMA.", "information_schema.", "`information_schema`.", "`INFORMATION_SCHEMA`."};
+
 template <typename Type>
 class Anything;
 

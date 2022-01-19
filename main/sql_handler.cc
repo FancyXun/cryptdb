@@ -59,21 +59,11 @@ nextImpl(const ResType &res, const NextParams &nparams)
         yield {
             std::unique_ptr<DBResult> db_res;
             std::string query = nparams.original_query;
-            std::string search = "INFORMATION_SCHEMA.";
             std::string replace = "information_schema_meta.";
-            size_t pos = 0;
-            while((pos = query.find(search, pos)) != std::string::npos) 
+            for(const std::string &search : schema_names)
             {
-                query.replace(pos, search.length(), replace);
-                pos += replace.length();
-            }
-            search = "information_schema.";
-            pos = 0;
-            while((pos = query.find(search, pos)) != std::string::npos) 
-            {
-                query.replace(pos, search.length(), replace);
-                pos += replace.length();
-            }
+                query = replaceAllWord(query, search, replace);
+            }            
             nparams.ps.getEConn()->execute(query, &db_res);
             return CR_RESULTS(db_res->unpack());
         }

@@ -461,6 +461,18 @@ toUpperCase(const std::string &token)
     return s;
 }
 
+std::string
+replaceAllWord(const std::string &s, const std:string &word1, const std:string &word2)
+{
+    size_t pos = 0;
+    while((pos = s.find(word1, pos)) != std::string::npos) 
+    {
+        s.replace(pos, word1.length(), word2);
+        pos += word2.length();
+    }
+    return s;
+}
+
 bool
 equalsIgnoreCase(const std::string &s1, const std::string &s2)
 {

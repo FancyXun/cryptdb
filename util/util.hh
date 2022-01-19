@@ -381,6 +381,7 @@ std::string homomorphicAdd(const std::string &val1, const std::string &val2,
 
 std::string toLowerCase(const std::string &token);
 std::string toUpperCase(const std::string &token);
+std::string replaceAllWord(const std::string &s, const std:string &word1, const std:string &word2);
 
 bool equalsIgnoreCase(const std::string &s1, const std::string &s2);
 
