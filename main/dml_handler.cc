@@ -1635,18 +1635,39 @@ nextImpl(const ResType &res, const NextParams &nparams)
             std::vector<std::vector<Item *> > new_rows;
 
             for (const auto &it : res.rows) {
-                assert(1 == it.size());
-                for (const auto &table : dm->getChildren()) {
-                    assert(table.second);
-                    if (table.second->getAnonTableName()
-                        == ItemToString(*it.front())) {
+                assert(2 >= it.size());
+                if (it.size() == 1){
+                    for (const auto &table : dm->getChildren()) {
+                        assert(table.second);
+                        if (table.second->getAnonTableName()
+                            == ItemToString(*it.front())) {
 
-                        const IdentityMetaKey &plain_table_name
-                            = dm->getKey(*table.second.get());
-                        new_rows.push_back(std::vector<Item *>
-                            {make_item_string(plain_table_name.getValue())});
+                            const IdentityMetaKey &plain_table_name
+                                = dm->getKey(*table.second.get());
+                            new_rows.push_back(std::vector<Item *>
+                                {make_item_string(plain_table_name.getValue())});
+                        }
                     }
                 }
+                else{
+                    for (const auto &table : dm->getChildren()) {
+                        assert(table.second);
+                        if (table.second->getAnonTableName()
+                            == ItemToString(*it.front())) {
+
+                            std::vector<Item *> resrow;
+                            const IdentityMetaKey &plain_table_name
+                                = dm->getKey(*table.second.get());
+                            resrow.push_back(make_item_string(plain_table_name.getValue()));
+                            resrow.push_back(it.back());
+                            new_rows.push_back(resrow);
+                        }
+                    }
+
+                }
+                
+
+                
             }
 
             return CR_RESULTS(ResType(res, new_rows));
