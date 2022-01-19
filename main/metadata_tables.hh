@@ -43,7 +43,7 @@ namespace MetaData {
         const std::string &lowLevelPrefix(const char *const p);
     };
 
-    namespace InformationSchemaSQL {
+    namespace InformationSchemaSQL1 {
         std::string tables =
         "  (TABLE_SCHEMA VARCHAR(64) NOT NULL,"
         "   TABLE_NAME VARCHAR(64) NOT NULL)";

@@ -216,48 +216,48 @@ MetaData::initialize(const std::unique_ptr<Connect> &conn,
 
     // todo: it can't be set lower_case_table_names in embedded, we create two tables in db. 
     const std::string create_information_schema_tables =
-        " CREATE TABLE IF NOT EXISTS " + Table::information_schema_tables() + InformationSchemaSQL::tables;
+        " CREATE TABLE IF NOT EXISTS " + Table::information_schema_tables() + InformationSchemaSQL1::tables;
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_tables));
 
     const std::string create_information_schema_tables_lowercase =
-        " CREATE TABLE IF NOT EXISTS " + toLowerCase(Table::information_schema_tables()) + InformationSchemaSQL::tables;
+        " CREATE TABLE IF NOT EXISTS " + toLowerCase(Table::information_schema_tables()) + InformationSchemaSQL1::tables;
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_tables_lowercase));
 
     const std::string create_information_schema_columns =
-        " CREATE TABLE IF NOT EXISTS " + Table::information_schema_columns() + InformationSchemaSQL::columns;
+        " CREATE TABLE IF NOT EXISTS " + Table::information_schema_columns() + InformationSchemaSQL1::columns;
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_columns));
 
     const std::string create_information_schema_columns_lowercase =
-        " CREATE TABLE IF NOT EXISTS " + toLowerCase(Table::information_schema_columns()) + InformationSchemaSQL::columns;
+        " CREATE TABLE IF NOT EXISTS " + toLowerCase(Table::information_schema_columns()) + InformationSchemaSQL1::columns;
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_columns_lowercase));
 
     const std::string create_information_schema_routines = 
-        "CREATE TABLE IF NOT EXISTS " + Table::information_schema_routines() + InformationSchemaSQL::routines;
+        "CREATE TABLE IF NOT EXISTS " + Table::information_schema_routines() + InformationSchemaSQL1::routines;
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_routines));
 
     const std::string create_information_schema_routines_lowercase = 
-        "CREATE TABLE IF NOT EXISTS " + toLowerCase(Table::information_schema_routines()) + InformationSchemaSQL::routines;
+        "CREATE TABLE IF NOT EXISTS " + toLowerCase(Table::information_schema_routines()) + InformationSchemaSQL1::routines;
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_routines_lowercase));
 
     const std::string create_information_schema_parameters = 
-        "CREATE TABLE IF NOT EXISTS " + Table::information_schema_parameters() + InformationSchemaSQL::parameters;
+        "CREATE TABLE IF NOT EXISTS " + Table::information_schema_parameters() + InformationSchemaSQL1::parameters;
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_parameters));
     const std::string create_information_schema_parameters_lowercase = 
-        "CREATE TABLE IF NOT EXISTS " + toLowerCase(Table::information_schema_parameters()) + InformationSchemaSQL::parameters;
+        "CREATE TABLE IF NOT EXISTS " + toLowerCase(Table::information_schema_parameters()) + InformationSchemaSQL1::parameters;
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_parameters_lowercase));
 
     const std::string create_information_schema_schemata =
-        "CREATE TABLE IF NOT EXISTS " + Table::information_schema_schemata() + InformationSchemaSQL::schemata;
+        "CREATE TABLE IF NOT EXISTS " + Table::information_schema_schemata() + InformationSchemaSQL1::schemata;
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_schemata));
     const std::string create_information_schema_schemata_lowercase =
-        "CREATE TABLE IF NOT EXISTS " + toLowerCase(Table::information_schema_schemata()) + InformationSchemaSQL::schemata;
+        "CREATE TABLE IF NOT EXISTS " + toLowerCase(Table::information_schema_schemata()) + InformationSchemaSQL1::schemata;
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_schemata_lowercase));
 
     const std::string create_information_schema_engines =
-        "CREATE TABLE IF NOT EXISTS " + Table::information_schema_engines() + InformationSchemaSQL::engines;
+        "CREATE TABLE IF NOT EXISTS " + Table::information_schema_engines() + InformationSchemaSQL1::engines;
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_engines));
     const std::string create_information_schema_engines_lowercase =
-        "CREATE TABLE IF NOT EXISTS " + toLowerCase(Table::information_schema_engines()) + InformationSchemaSQL::engines;
+        "CREATE TABLE IF NOT EXISTS " + toLowerCase(Table::information_schema_engines()) + InformationSchemaSQL1::engines;
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_engines_lowercase));
 
     initialized = true;
