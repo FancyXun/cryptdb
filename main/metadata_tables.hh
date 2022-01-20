@@ -25,7 +25,6 @@ namespace MetaData {
         std::string information_schema_parameters();
         std::string information_schema_schemata();
         std::string information_schema_engines();
-        std::string information_schema_createTable();
     };
 
     namespace Proc {
