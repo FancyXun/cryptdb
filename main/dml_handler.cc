@@ -1663,11 +1663,7 @@ nextImpl(const ResType &res, const NextParams &nparams)
                             new_rows.push_back(resrow);
                         }
                     }
-
                 }
-                
-
-                
             }
 
             return CR_RESULTS(ResType(res, new_rows));
