@@ -583,9 +583,7 @@ test64bitZZConversions()
 
 std::string 
 checkTableStatus(const std::string &query, const std::string &db){
-    char buf[query.size() + 1];
-    memcpy(buf, toLowerCase(query).c_str(), query.size());
-    std::string query_str(buf);
+    std::string query_str = toLowerCase(query);
     query_str.erase(std::remove(query_str.begin(), query_str.end(), ' '), query_str.end());
     if (query_str.rfind("showtablestatuslike", 0) == 0){
         std::string table_name = query_str.substr(19, query_str.size());
