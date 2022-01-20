@@ -82,6 +82,12 @@ MetaData::Table::information_schema_engines()
     return DB::information_schema() + "." + "ENGINES";
 }
 
+std::string 
+MetaData::Table::information_schema_create_table()
+{
+    return DB::information_schema() + "." + "CREATE_TABLE";
+}
+
 std::string
 MetaData::Proc::activeTransactionP()
 {
@@ -364,6 +370,12 @@ MetaData::initialize(const std::unique_ptr<Connect> &conn,
     const std::string create_information_schema_engines_lowercase =
         "CREATE TABLE IF NOT EXISTS " + toLowerCase(Table::information_schema_engines()) + InformationSchemaSQL::engines();
     RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_engines_lowercase));
+
+    const std::string create_information_schema_create_table =
+        " CREATE TABLE IF NOT EXISTS " + Table::information_schema_create_table() +
+        "   (table VARCHAR(100) NOT NULL,"
+        "    create_table VARCHAR(1000) NOT NULL)";
+    RETURN_FALSE_IF_FALSE(conn->execute(create_information_schema_create_table));
 
     initialized = true;
     return true;

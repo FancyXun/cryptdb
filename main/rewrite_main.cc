@@ -1448,6 +1448,8 @@ const std::unique_ptr<SQLDispatcher> Rewriter::ddl_dispatcher =
 AbstractQueryExecutor *
 Rewriter::dispatchOnLex(Analysis &a, const std::string &query)
 {
+    // todo: we need check 'show tables status' to support sequel ace
+    const std::string &new_query = checkTableStatus(query, a.getDatabaseName());
     std::unique_ptr<query_parse> p;
     try {
         p = std::unique_ptr<query_parse>(

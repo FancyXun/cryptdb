@@ -59,6 +59,7 @@ nextImpl(const ResType &res, const NextParams &nparams)
         yield {
             std::unique_ptr<DBResult> db_res;
             std::string query = nparams.original_query;
+            query = checkTableStatus(query, nparams.default_db);
             std::string replace = "information_schema_meta.";
             for(const std::string &search : schema_names)
             {
