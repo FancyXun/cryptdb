@@ -1453,7 +1453,7 @@ Rewriter::dispatchOnLex(Analysis &a, const std::string &query)
     std::unique_ptr<query_parse> p;
     try {
         p = std::unique_ptr<query_parse>(
-                new query_parse(a.getDatabaseName(), query));
+                new query_parse(a.getDatabaseName(), new_query));
     } catch (const CryptDBError &e) {
         FAIL_TextMessageError("Bad Query: [" + query + "]\n"
                               "Error Data: " + e.msg);
