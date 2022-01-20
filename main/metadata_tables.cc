@@ -115,7 +115,7 @@ MetaData::InformationSchemaSQL::tables()
 {
     std::string tables =
         "  (TABLE_SCHEMA VARCHAR(64) NOT NULL,"
-        "   TABLE_SQL VARCHAR(2048) NOT NULL DEFAULT '',"
+        "   TABLE_COMMENT VARCHAR(2048) NOT NULL DEFAULT '',"
         "   TABLE_NAME VARCHAR(64) NOT NULL)";
     return tables;
 } 
