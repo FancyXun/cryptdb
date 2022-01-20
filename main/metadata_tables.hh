@@ -21,6 +21,10 @@ namespace MetaData {
         std::string remoteQueryCompletion();
         std::string information_schema_tables();
         std::string information_schema_columns();
+        std::string information_schema_routines();
+        std::string information_schema_parameters();
+        std::string information_schema_schemata();
+        std::string information_schema_engines();
     };
 
     namespace Proc {
@@ -30,6 +34,7 @@ namespace MetaData {
     namespace DB {
         std::string embeddedDB();
         std::string remoteDB();
+        std::string information_schema();
     };
 
     namespace Internal {
@@ -37,5 +42,14 @@ namespace MetaData {
         const std::string &getPrefix();
         const std::string &lowLevelPrefix(const char *const p);
     };
+
+    namespace InformationSchemaSQL {
+        std::string tables();
+        std::string columns();
+        std::string routines();
+        std::string parameters();
+        std::string schemata();
+        std::string engines();
+    }
 };
 

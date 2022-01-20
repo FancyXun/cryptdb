@@ -461,6 +461,18 @@ toUpperCase(const std::string &token)
     return s;
 }
 
+std::string
+replaceAllWord(std::string &s, const std::string &word1, const std::string &word2)
+{
+    size_t pos = 0;
+    while((pos = s.find(word1, pos)) != std::string::npos) 
+    {
+        s.replace(pos, word1.length(), word2);
+        pos += word2.length();
+    }
+    return s;
+}
+
 bool
 equalsIgnoreCase(const std::string &s1, const std::string &s2)
 {
@@ -567,4 +579,22 @@ test64bitZZConversions()
     }
 
     return true;
+}
+
+std::string 
+checkTableStatus(const std::string &query, const std::string &db){
+    std::string query_str = toLowerCase(query);
+    query_str.erase(std::remove(query_str.begin(), query_str.end(), ' '), query_str.end());
+    if (query_str.rfind("showtablestatuslike", 0) == 0){
+        std::string table_name = query_str.substr(19, query_str.size());
+        const std::string s = "select * from information_schema.tables where table_schema = '" + db +"' and table_name = "+ table_name;
+        return s;
+    }
+    if (query_str.rfind("showcreatetable", 0) == 0){
+        std::string table_name = query_str.substr(15, query_str.size());
+        const std::string s = "select TABLE_SCHEMA, TABLE_COMMENT from information_schema.TABLES";
+        return s;
+    }
+
+    return query;
 }

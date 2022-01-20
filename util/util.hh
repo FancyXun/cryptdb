@@ -381,9 +381,10 @@ std::string homomorphicAdd(const std::string &val1, const std::string &val2,
 
 std::string toLowerCase(const std::string &token);
 std::string toUpperCase(const std::string &token);
+std::string replaceAllWord(std::string &s, const std::string &word1, const std::string &word2);
 
 bool equalsIgnoreCase(const std::string &s1, const std::string &s2);
-
+std::string checkTableStatus(const std::string &query, const std::string &db);
 std::string leadingZeros(const std::string &input, size_t count);
 std::string trailingZeros(const std::string &input, size_t count);
 
