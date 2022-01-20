@@ -594,7 +594,7 @@ checkTableStatus(const std::string &query, const std::string &db){
     }
     if (query_str.rfind("showcreatetable", 0) == 0){
         std::string table_name = query_str.substr(15, query_str.size());
-        const std::string s = "select * from information_schema.CREATE_TABLE";
+        const std::string s = "select * from information_schema.CREATETABLE";
         return s;
     }
 
