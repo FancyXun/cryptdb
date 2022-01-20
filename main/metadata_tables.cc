@@ -375,7 +375,7 @@ MetaData::initialize(const std::unique_ptr<Connect> &conn,
         " CREATE TABLE IF NOT EXISTS " + Table::information_schema_create_table() +
         "   (table_name VARCHAR(100) NOT NULL,"
         "    create_table VARCHAR(1000) NOT NULL)";
-    RETURN_FALSE_IF_FALSE(conn->execute(create_information_schema_create_table));
+    RETURN_FALSE_IF_FALSE(e_conn->execute(create_information_schema_create_table));
 
     initialized = true;
     return true;
